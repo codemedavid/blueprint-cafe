@@ -4,21 +4,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        ramen: {
-          red: '#D7263D',
-          dark: '#0B0A0A',
-          charcoal: '#111113',
-          cream: '#FFF3E0',
-          beige: '#F7E7CE',
-          gold: '#E0A106',
-          sesame: '#D1C7B7',
-          seaweed: '#1F2937',
-          kimchi: '#B81D24'
+        blueprint: {
+          blue: '#1E40AF', // Royal blue for main accents
+          'blue-light': '#3B82F6', // Lighter blue for hover states
+          'blue-dark': '#1E3A8A', // Darker blue for text
+          'blue-50': '#EFF6FF', // Very light blue for backgrounds
+          'blue-100': '#DBEAFE', // Light blue for subtle backgrounds
+          'off-white': '#FEFEFE', // Off-white background
+          'cream': '#F8FAFC', // Slightly warmer off-white
+          'gray-soft': '#64748B', // Soft gray for secondary text
+          'gray-dark': '#1E293B' // Dark gray for primary text
         }
       },
       fontFamily: {
-        'pretendard': ['Pretendard', 'system-ui', 'sans-serif'],
-        'noto-kr': ['Noto Serif KR', 'serif']
+        'blueprint': ['Inter', 'system-ui', 'sans-serif'], // Clean sans-serif for menu items
+        'blueprint-bold': ['Inter', 'system-ui', 'sans-serif'], // Bold version for headings
+        'blueprint-display': ['Inter', 'system-ui', 'sans-serif'] // Display font for large text
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

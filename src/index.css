@@ -1,15 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Ramen Yard Custom Styles */
-/* Minimal helpers for ramen palette when needed outside tailwind tokens */
-.bg-ramen-cream { background-color: #FFF3E0; }
-.bg-ramen-beige { background-color: #F7E7CE; }
-.text-ramen-red { color: #D7263D; }
-.text-ramen-dark { color: #0B0A0A; }
-.border-ramen-sesame { border-color: #D1C7B7; }
-.ring-ramen-gold { --tw-ring-color: #E0A106; }
+/* Blueprint Cafe Custom Styles */
+/* Custom helpers for Blueprint Cafe palette */
+.bg-blueprint-off-white { background-color: #FEFEFE; }
+.bg-blueprint-cream { background-color: #F8FAFC; }
+.text-blueprint-blue { color: #1E40AF; }
+.text-blueprint-dark { color: #1E293B; }
+.border-blueprint-blue { border-color: #1E40AF; }
+.ring-blueprint-blue { --tw-ring-color: #1E40AF; }
+
+/* Blueprint Cafe Typography */
+.font-blueprint-display {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.font-blueprint-bold {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.font-blueprint {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
 
 /* Hide scrollbar for mobile nav */
 .scrollbar-hide {
