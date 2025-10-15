@@ -17,9 +17,10 @@ export default {
         }
       },
       fontFamily: {
-        'blueprint': ['Inter', 'system-ui', 'sans-serif'], // Clean sans-serif for menu items
-        'blueprint-bold': ['Inter', 'system-ui', 'sans-serif'], // Bold version for headings
-        'blueprint-display': ['Inter', 'system-ui', 'sans-serif'] // Display font for large text
+        'sans': ['Montserrat', 'system-ui', 'sans-serif'], // Default font family
+        'blueprint': ['Montserrat', 'system-ui', 'sans-serif'], // Clean sans-serif for menu items
+        'blueprint-bold': ['Montserrat', 'system-ui', 'sans-serif'], // Bold version for headings
+        'blueprint-display': ['Montserrat', 'system-ui', 'sans-serif'] // Display font for large text
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

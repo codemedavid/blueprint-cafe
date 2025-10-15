@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
-import Hero from './components/Hero';
 import SubNav from './components/SubNav';
 import Menu from './components/Menu';
 import Cart from './components/Cart';
@@ -31,7 +30,7 @@ function MainApp() {
     : menuItems.filter(item => item.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-blueprint-off-white font-blueprint">
+    <div className="min-h-screen bg-blueprint-off-white font-sans">
       <Header 
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
@@ -40,15 +39,12 @@ function MainApp() {
       <SubNav selectedCategory={selectedCategory} onCategoryClick={handleCategoryClick} />
       
       {currentView === 'menu' && (
-        <>
-          <Hero />
-          <Menu 
-            menuItems={filteredMenuItems}
-            addToCart={cart.addToCart}
-            cartItems={cart.cartItems}
-            updateQuantity={cart.updateQuantity}
-          />
-        </>
+        <Menu 
+          menuItems={filteredMenuItems}
+          addToCart={cart.addToCart}
+          cartItems={cart.cartItems}
+          updateQuantity={cart.updateQuantity}
+        />
       )}
       
       {currentView === 'cart' && (
