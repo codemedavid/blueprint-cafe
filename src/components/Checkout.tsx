@@ -187,7 +187,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
                       className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                         serviceType === option.value
                           ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-blue-300 bg-white text-gray-700 hover:border-red-400'
+                          : 'border-blue-300 bg-white text-gray-700 hover:border-blue-400'
                       }`}
                     >
                       <div className="text-2xl mb-1">{option.icon}</div>
@@ -217,7 +217,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
                           className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${
                             pickupTime === option.value
                               ? 'border-blue-600 bg-blue-600 text-white'
-                              : 'border-blue-300 bg-white text-gray-700 hover:border-red-400'
+                              : 'border-blue-300 bg-white text-gray-700 hover:border-blue-400'
                           }`}
                         >
                           <Clock className="h-4 w-4 mx-auto mb-1" />
@@ -273,7 +273,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
                 disabled={!isDetailsValid}
                 className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${
                   isDetailsValid
-                    ? 'bg-blue-600 text-white hover:bg-red-700 hover:scale-[1.02]'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02]'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
@@ -314,7 +314,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
                 className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${
                   paymentMethod === method.id
                     ? 'border-blue-600 bg-blue-600 text-white'
-                    : 'border-blue-300 bg-white text-gray-700 hover:border-red-400'
+                    : 'border-blue-300 bg-white text-gray-700 hover:border-blue-400'
                 }`}
               >
                 <span className="text-2xl">💳</span>
@@ -325,7 +325,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
 
           {/* Payment Details with QR Code */}
           {selectedPaymentMethod && (
-            <div className="bg-red-50 rounded-lg p-6 mb-6">
+            <div className="bg-blue-50 rounded-lg p-6 mb-6">
               <h3 className="font-medium text-black mb-4">Payment Details</h3>
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -363,7 +363,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
           <h2 className="text-2xl font-noto font-medium text-black mb-6">Final Order Summary</h2>
           
           <div className="space-y-4 mb-6">
-            <div className="bg-red-50 rounded-lg p-4">
+            <div className="bg-blue-50 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2">Customer Details</h4>
               <p className="text-sm text-gray-600">Name: {customerName}</p>
               <p className="text-sm text-gray-600">Contact: {contactNumber}</p>
@@ -415,7 +415,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
 
           <button
             onClick={handlePlaceOrder}
-            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-blue-600 text-white hover:bg-red-700 hover:scale-[1.02]"
+            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02]"
           >
             Place Order via Messenger
           </button>
