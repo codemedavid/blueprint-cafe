@@ -139,36 +139,36 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             {!item.available ? (
               <button
                 disabled
-                className="w-7 h-7 bg-gray-200 text-gray-500 rounded-full cursor-not-allowed flex items-center justify-center"
+                className="w-7 h-7 md:w-10 md:h-10 bg-gray-200 text-gray-500 rounded-full cursor-not-allowed flex items-center justify-center"
                 style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3.5 w-3.5 md:h-5 md:w-5" />
               </button>
             ) : quantity === 0 ? (
               <button
                 onClick={handleAddToCart}
-                className="w-7 h-7 bg-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
+                className="w-7 h-7 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
                 style={{ 
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                   strokeWidth: '2.5px'
                 }}
               >
-                <Plus className="h-3.5 w-3.5" style={{ color: '#1E3A8A' }} />
+                <Plus className="h-3.5 w-3.5 md:h-5 md:w-5" style={{ color: '#1E3A8A' }} />
               </button>
             ) : (
-              <div className="flex items-center space-x-0.5 bg-white rounded-full p-0.5" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
+              <div className="flex items-center space-x-0.5 md:space-x-1.5 bg-white rounded-full p-0.5 md:p-1.5" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
                 <button
                   onClick={handleDecrement}
-                  className="w-5 h-5 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
+                  className="w-5 h-5 md:w-7 md:h-7 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
                 >
-                  <Minus className="h-2.5 w-2.5" style={{ color: '#1E3A8A' }} />
+                  <Minus className="h-2.5 w-2.5 md:h-3.5 md:w-3.5" style={{ color: '#1E3A8A' }} />
                 </button>
-                <span className="font-semibold min-w-[16px] text-center text-xs" style={{ color: '#1E1E1E' }}>{quantity}</span>
+                <span className="font-semibold min-w-[16px] md:min-w-[24px] text-center text-xs md:text-base" style={{ color: '#1E1E1E' }}>{quantity}</span>
                 <button
                   onClick={handleIncrement}
-                  className="w-5 h-5 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
+                  className="w-5 h-5 md:w-7 md:h-7 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
                 >
-                  <Plus className="h-2.5 w-2.5" style={{ color: '#1E3A8A' }} />
+                  <Plus className="h-2.5 w-2.5 md:h-3.5 md:w-3.5" style={{ color: '#1E3A8A' }} />
                 </button>
               </div>
             )}
@@ -178,7 +178,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         {/* Text Section - Below Card */}
         <div className="mt-2">
           {/* Product Title */}
-          <h4 className="text-sm font-semibold leading-tight mb-1" style={{ 
+          <h4 className="text-sm md:text-base font-semibold leading-tight mb-1" style={{ 
             color: '#1E1E1E',
             fontSize: '14px',
             fontWeight: '600',
@@ -193,7 +193,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           </h4>
           
           {/* Product Price */}
-          <div className="text-sm" style={{ 
+          <div className="text-sm md:text-base" style={{ 
             color: '#666666',
             fontSize: '13px',
             fontWeight: '400',
@@ -202,7 +202,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             {item.isOnDiscount && item.discountPrice ? (
               <div className="flex items-center space-x-2">
                 <span>from ₱{item.discountPrice.toFixed(0)}</span>
-                <span className="text-xs line-through opacity-75">₱{item.basePrice.toFixed(0)}</span>
+                <span className="text-xs md:text-sm line-through opacity-75">₱{item.basePrice.toFixed(0)}</span>
               </div>
             ) : (
               <span>from ₱{item.basePrice.toFixed(0)}</span>
