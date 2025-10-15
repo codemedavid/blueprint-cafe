@@ -87,10 +87,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
 
   return (
     <>
-      <MobileNav 
-        activeCategory={activeCategory}
-        onCategoryClick={handleCategoryClick}
-      />
+
       <main className="bg-blueprint-off-white min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {categories.map((category) => {
@@ -107,7 +104,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {categoryItems.map((item) => {
                     const cartItem = cartItems.find(cartItem => cartItem.id === item.id);
                     return (

@@ -93,142 +93,121 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
   return (
     <>
-      <div className={`bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group animate-scale-in border-2 border-blueprint-blue/10 hover:border-blueprint-blue/30 ${!item.available ? 'opacity-60' : ''}`}>
-        {/* Image Container with Badges */}
-        <div className="relative h-48 bg-gradient-to-br from-blueprint-blue/5 to-blueprint-blue/10">
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-              decoding="async"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          ) : null}
-          <div className={`absolute inset-0 flex items-center justify-center ${item.image ? 'hidden' : ''}`}>
-            <div className="text-6xl opacity-20 text-blueprint-blue">☕</div>
+      <div className="w-full">
+        {/* Card Container - Blueish Gradient Design */}
+        <div className={`relative aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group ${!item.available ? 'opacity-60' : ''}`}
+             style={{
+               background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 25%, #1E40AF 50%, #1E3A8A 75%, #1E2A5E 100%)',
+               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+             }}>
+          
+          {/* Product Image - Covering the entire box */}
+          <div className="absolute inset-0 z-10">
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`absolute inset-0 flex items-center justify-center ${item.image ? 'hidden' : ''}`}>
+              <div className="text-6xl opacity-30" style={{ color: '#1E3A8A' }}>☕</div>
+            </div>
           </div>
           
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {item.isOnDiscount && item.discountPrice && (
-              <div className="bg-blueprint-blue text-white text-xs font-blueprint-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
-                SALE
-              </div>
-            )}
-            {item.popular && (
-              <div className="bg-gradient-to-r from-blueprint-blue to-blueprint-blue-dark text-white text-xs font-blueprint-bold px-3 py-1.5 rounded-full shadow-lg">
-                ⭐ POPULAR
-              </div>
-            )}
-          </div>
+          {/* Popular Badge - Top Right */}
+          {item.popular && (
+            <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-20">
+              Popular
+            </div>
+          )}
           
           {!item.available && (
-            <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-blueprint-bold px-3 py-1.5 rounded-full shadow-lg">
-              UNAVAILABLE
+            <div className="absolute top-3 left-3 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full z-20">
+              Unavailable
             </div>
           )}
           
-          {/* Discount Percentage Badge */}
-          {item.isOnDiscount && item.discountPrice && (
-            <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-blueprint-blue text-xs font-blueprint-bold px-2 py-1 rounded-full shadow-lg">
-              {Math.round(((item.basePrice - item.discountPrice) / item.basePrice) * 100)}% OFF
-            </div>
-          )}
-        </div>
-        
-        {/* Content */}
-        <div className="p-6">
-          <div className="flex items-start justify-between mb-3">
-            <h4 className="text-lg font-blueprint-bold text-blueprint-dark leading-tight flex-1 pr-2">{item.name}</h4>
-            {item.variations && item.variations.length > 0 && (
-              <div className="text-xs text-blueprint-gray-soft bg-blueprint-blue/10 px-2 py-1 rounded-full whitespace-nowrap font-blueprint">
-                {item.variations.length} sizes
+          {/* Add to Cart Button - Bottom Right Corner */}
+          <div className="absolute bottom-2 right-2 z-20">
+            {!item.available ? (
+              <button
+                disabled
+                className="w-7 h-7 bg-gray-200 text-gray-500 rounded-full cursor-not-allowed flex items-center justify-center"
+                style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : quantity === 0 ? (
+              <button
+                onClick={handleAddToCart}
+                className="w-7 h-7 bg-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
+                style={{ 
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  strokeWidth: '2.5px'
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" style={{ color: '#1E3A8A' }} />
+              </button>
+            ) : (
+              <div className="flex items-center space-x-0.5 bg-white rounded-full p-0.5" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
+                <button
+                  onClick={handleDecrement}
+                  className="w-5 h-5 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
+                >
+                  <Minus className="h-2.5 w-2.5" style={{ color: '#1E3A8A' }} />
+                </button>
+                <span className="font-semibold min-w-[16px] text-center text-xs" style={{ color: '#1E1E1E' }}>{quantity}</span>
+                <button
+                  onClick={handleIncrement}
+                  className="w-5 h-5 hover:bg-gray-100 rounded-full transition-colors duration-200 flex items-center justify-center"
+                >
+                  <Plus className="h-2.5 w-2.5" style={{ color: '#1E3A8A' }} />
+                </button>
               </div>
             )}
           </div>
+        </div>
+        
+        {/* Text Section - Below Card */}
+        <div className="mt-2">
+          {/* Product Title */}
+          <h4 className="text-sm font-semibold leading-tight mb-1" style={{ 
+            color: '#1E1E1E',
+            fontSize: '14px',
+            fontWeight: '600',
+            lineHeight: '1.3',
+            maxHeight: '2.6em',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical'
+          }}>
+            {item.name}
+          </h4>
           
-          <p className={`text-sm mb-4 leading-relaxed font-blueprint ${!item.available ? 'text-gray-400' : 'text-blueprint-gray-soft'}`}>
-            {!item.available ? 'Currently Unavailable' : item.description}
-          </p>
-          
-          {/* Pricing Section */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              {item.isOnDiscount && item.discountPrice ? (
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-blueprint-bold text-blueprint-blue">
-                      ₱{item.discountPrice.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-blueprint-gray-soft line-through font-blueprint">
-                      ₱{item.basePrice.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="text-xs text-blueprint-gray-soft font-blueprint">
-                    Save ₱{(item.basePrice - item.discountPrice).toFixed(2)}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-2xl font-blueprint-bold text-blueprint-dark">
-                  ₱{item.basePrice.toFixed(2)}
-                </div>
-              )}
-              
-              {item.variations && item.variations.length > 0 && (
-                <div className="text-xs text-blueprint-gray-soft mt-1 font-blueprint">
-                  Starting price
-                </div>
-              )}
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex-shrink-0">
-              {!item.available ? (
-                <button
-                  disabled
-                  className="bg-gray-200 text-gray-500 px-4 py-2.5 rounded-xl cursor-not-allowed font-blueprint-bold text-sm"
-                >
-                  Unavailable
-                </button>
-              ) : quantity === 0 ? (
-                <button
-                  onClick={handleAddToCart}
-                  className="bg-blueprint-blue text-white px-6 py-2.5 rounded-xl hover:bg-blueprint-blue-dark transition-all duration-200 transform hover:scale-105 font-blueprint-bold text-sm shadow-lg hover:shadow-xl"
-                >
-                  {item.variations?.length || item.addOns?.length ? 'Customize' : 'Add to Cart'}
-                </button>
-              ) : (
-                <div className="flex items-center space-x-2 bg-blueprint-blue/10 rounded-xl p-1 border border-blueprint-blue/20">
-                  <button
-                    onClick={handleDecrement}
-                    className="p-2 hover:bg-blueprint-blue/20 rounded-lg transition-colors duration-200 hover:scale-110"
-                  >
-                    <Minus className="h-4 w-4 text-blueprint-blue" />
-                  </button>
-                  <span className="font-blueprint-bold text-blueprint-dark min-w-[28px] text-center text-sm">{quantity}</span>
-                  <button
-                    onClick={handleIncrement}
-                    className="p-2 hover:bg-blueprint-blue/20 rounded-lg transition-colors duration-200 hover:scale-110"
-                  >
-                    <Plus className="h-4 w-4 text-blueprint-blue" />
-                  </button>
-                </div>
-              )}
-            </div>
+          {/* Product Price */}
+          <div className="text-sm" style={{ 
+            color: '#666666',
+            fontSize: '13px',
+            fontWeight: '400',
+            lineHeight: '1.4'
+          }}>
+            {item.isOnDiscount && item.discountPrice ? (
+              <div className="flex items-center space-x-2">
+                <span>from ₱{item.discountPrice.toFixed(0)}</span>
+                <span className="text-xs line-through opacity-75">₱{item.basePrice.toFixed(0)}</span>
+              </div>
+            ) : (
+              <span>from ₱{item.basePrice.toFixed(0)}</span>
+            )}
           </div>
-
-          {/* Add-ons indicator */}
-          {item.addOns && item.addOns.length > 0 && (
-            <div className="flex items-center space-x-1 text-xs text-blueprint-gray-soft bg-blueprint-blue/5 px-2 py-1 rounded-lg font-blueprint">
-              <span>+</span>
-              <span>{item.addOns.length} add-on{item.addOns.length > 1 ? 's' : ''} available</span>
-            </div>
-          )}
         </div>
       </div>
 
