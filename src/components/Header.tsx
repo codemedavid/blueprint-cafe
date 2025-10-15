@@ -22,8 +22,18 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             {loading ? (
               <div className="w-12 h-12 bg-blueprint-blue/10 rounded-full animate-pulse" />
             ) : (
-              <div className="w-12 h-12 bg-blueprint-blue rounded-full flex items-center justify-center ring-2 ring-blueprint-blue/20">
-                <span className="text-white font-blueprint-bold text-lg">B</span>
+              <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-blueprint-blue/20">
+                {siteSettings?.site_logo ? (
+                  <img
+                    src={siteSettings.site_logo}
+                    alt="Site Logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-blueprint-blue flex items-center justify-center">
+                    <span className="text-white font-blueprint-bold text-lg">B</span>
+                  </div>
+                )}
               </div>
             )}
             <div className="text-left">
@@ -31,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                 {loading ? (
                   <div className="w-32 h-8 bg-blueprint-blue/10 rounded animate-pulse" />
                 ) : (
-                  "BLUEPRINT"
+                  siteSettings?.site_name?.toUpperCase() || "BLUEPRINT"
                 )}
               </h1>
               <p className="text-sm font-blueprint text-blueprint-gray-soft -mt-1">

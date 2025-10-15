@@ -232,7 +232,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               {/* Size Variations */}
               {item.variations && item.variations.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-4">Choose Size</h4>
+                  <h4 className="font-semibold text-gray-900 mb-4">Choose Variation</h4>
                   <div className="space-y-3">
                     {item.variations.map((variation) => (
                       <label
