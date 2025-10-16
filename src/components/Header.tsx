@@ -44,13 +44,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                   siteSettings?.site_name?.toUpperCase() || "BLUEPRINT"
                 )}
               </h1>
-              <p className="text-sm font-blueprint text-blueprint-gray-soft -mt-1">
-                {loading ? (
-                  <div className="w-16 h-4 bg-blueprint-blue/10 rounded animate-pulse" />
-                ) : (
-                  "CAFE"
-                )}
-              </p>
+             
             </div>
           </button>
 
