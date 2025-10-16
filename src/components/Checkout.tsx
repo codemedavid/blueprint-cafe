@@ -85,7 +85,7 @@ Please confirm this order to proceed. Thank you for choosing ClickEats! 🥟
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/61579735886790?text=${encodedMessage}`;
+    const messengerUrl = `https://m.me/BlueprintCafe?text=${encodedMessage}`;
     
     window.open(messengerUrl, '_blank');
     
