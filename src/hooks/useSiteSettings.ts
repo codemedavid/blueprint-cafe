@@ -20,12 +20,27 @@ export const useSiteSettings = () => {
       if (error) throw error;
 
       // Transform the data into a more usable format
+      const serviceChargeEnabledValue = data.find(s => s.id === 'service_charge_enabled')?.value || 'false';
+      const serviceChargePercentageValue = data.find(s => s.id === 'service_charge_percentage')?.value || '7.5';
+      const serviceChargeApplicableToValue = data.find(s => s.id === 'service_charge_applicable_to')?.value || '["dine-in", "delivery"]';
+      
+      let serviceChargeApplicableTo: string[] = [];
+      try {
+        serviceChargeApplicableTo = JSON.parse(serviceChargeApplicableToValue);
+      } catch (e) {
+        console.error('Error parsing service_charge_applicable_to:', e);
+        serviceChargeApplicableTo = ['dine-in', 'delivery'];
+      }
+
       const settings: SiteSettings = {
         site_name: data.find(s => s.id === 'site_name')?.value || 'Beracah Cafe',
         site_logo: data.find(s => s.id === 'site_logo')?.value || '',
         site_description: data.find(s => s.id === 'site_description')?.value || '',
         currency: data.find(s => s.id === 'currency')?.value || 'PHP',
-        currency_code: data.find(s => s.id === 'currency_code')?.value || 'PHP'
+        currency_code: data.find(s => s.id === 'currency_code')?.value || 'PHP',
+        service_charge_enabled: serviceChargeEnabledValue === 'true',
+        service_charge_percentage: parseFloat(serviceChargePercentageValue) || 7.5,
+        service_charge_applicable_to: serviceChargeApplicableTo
       };
 
       setSiteSettings(settings);
@@ -61,12 +76,24 @@ export const useSiteSettings = () => {
     try {
       setError(null);
 
-      const updatePromises = Object.entries(updates).map(([key, value]) =>
-        supabase
+      const updatePromises = Object.entries(updates).map(([key, value]) => {
+        // Convert value to string for storage
+        let stringValue: string;
+        if (key === 'service_charge_enabled') {
+          stringValue = value ? 'true' : 'false';
+        } else if (key === 'service_charge_percentage') {
+          stringValue = String(value || 0);
+        } else if (key === 'service_charge_applicable_to') {
+          stringValue = JSON.stringify(value || []);
+        } else {
+          stringValue = String(value || '');
+        }
+        
+        return supabase
           .from('site_settings')
-          .update({ value })
-          .eq('id', key)
-      );
+          .update({ value: stringValue })
+          .eq('id', key);
+      });
 
       const results = await Promise.all(updatePromises);
       

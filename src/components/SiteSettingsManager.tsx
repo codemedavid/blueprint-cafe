@@ -11,7 +11,10 @@ const SiteSettingsManager: React.FC = () => {
     site_name: '',
     site_description: '',
     currency: '',
-    currency_code: ''
+    currency_code: '',
+    service_charge_enabled: false,
+    service_charge_percentage: 7.5,
+    service_charge_applicable_to: ['dine-in', 'delivery'] as string[]
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
@@ -22,7 +25,10 @@ const SiteSettingsManager: React.FC = () => {
         site_name: siteSettings.site_name,
         site_description: siteSettings.site_description,
         currency: siteSettings.currency,
-        currency_code: siteSettings.currency_code
+        currency_code: siteSettings.currency_code,
+        service_charge_enabled: siteSettings.service_charge_enabled ?? false,
+        service_charge_percentage: siteSettings.service_charge_percentage ?? 7.5,
+        service_charge_applicable_to: siteSettings.service_charge_applicable_to ?? ['dine-in', 'delivery']
       });
       setLogoPreview(siteSettings.site_logo);
     }
@@ -64,7 +70,10 @@ const SiteSettingsManager: React.FC = () => {
         site_description: formData.site_description,
         currency: formData.currency,
         currency_code: formData.currency_code,
-        site_logo: logoUrl
+        site_logo: logoUrl,
+        service_charge_enabled: formData.service_charge_enabled,
+        service_charge_percentage: formData.service_charge_percentage,
+        service_charge_applicable_to: formData.service_charge_applicable_to
       });
 
       setIsEditing(false);
@@ -80,12 +89,28 @@ const SiteSettingsManager: React.FC = () => {
         site_name: siteSettings.site_name,
         site_description: siteSettings.site_description,
         currency: siteSettings.currency,
-        currency_code: siteSettings.currency_code
+        currency_code: siteSettings.currency_code,
+        service_charge_enabled: siteSettings.service_charge_enabled ?? false,
+        service_charge_percentage: siteSettings.service_charge_percentage ?? 7.5,
+        service_charge_applicable_to: siteSettings.service_charge_applicable_to ?? ['dine-in', 'delivery']
       });
       setLogoPreview(siteSettings.site_logo);
     }
     setIsEditing(false);
     setLogoFile(null);
+  };
+
+  const handleServiceTypeToggle = (serviceType: string) => {
+    setFormData(prev => {
+      const current = prev.service_charge_applicable_to;
+      const updated = current.includes(serviceType)
+        ? current.filter(type => type !== serviceType)
+        : [...current, serviceType];
+      return {
+        ...prev,
+        service_charge_applicable_to: updated
+      };
+    });
   };
 
   if (loading) {
@@ -249,6 +274,83 @@ const SiteSettingsManager: React.FC = () => {
               <p className="text-lg font-medium text-black">{siteSettings?.currency_code}</p>
             )}
           </div>
+        </div>
+
+        {/* Service Charge Settings */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-medium text-black mb-4">Service Charge Settings</h3>
+          
+          {/* Enable Service Charge */}
+          <div className="mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={formData.service_charge_enabled}
+                onChange={(e) => setFormData(prev => ({ ...prev, service_charge_enabled: e.target.checked }))}
+                disabled={!isEditing}
+                className="rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:opacity-50"
+              />
+              <span className="text-sm font-medium text-gray-700">Enable Service Charge</span>
+            </label>
+          </div>
+
+          {formData.service_charge_enabled && (
+            <>
+              {/* Service Charge Percentage */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Charge Percentage
+                </label>
+                {isEditing ? (
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    value={formData.service_charge_percentage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, service_charge_percentage: parseFloat(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="e.g., 7.5"
+                  />
+                ) : (
+                  <p className="text-lg font-medium text-black">{siteSettings?.service_charge_percentage ?? 7.5}%</p>
+                )}
+              </div>
+
+              {/* Applicable Service Types */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Applicable To Service Types
+                </label>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    {['dine-in', 'pickup', 'delivery'].map((serviceType) => (
+                      <label key={serviceType} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.service_charge_applicable_to.includes(serviceType)}
+                          onChange={() => handleServiceTypeToggle(serviceType)}
+                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        <span className="text-sm text-gray-700 capitalize">{serviceType.replace('-', ' ')}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(siteSettings?.service_charge_applicable_to || []).map((serviceType) => (
+                      <span
+                        key={serviceType}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 capitalize"
+                      >
+                        {serviceType.replace('-', ' ')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -9,8 +10,9 @@ interface CheckoutProps {
   onBack: () => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice: _totalPrice, onBack }) => {
   const { paymentMethods } = usePaymentMethods();
+  const { siteSettings } = useSiteSettings();
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -18,8 +20,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [pickupTime, setPickupTime] = useState('5-10');
   const [customTime, setCustomTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
-  const [referenceNumber, setReferenceNumber] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Calculate subtotal from cart items
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+
+  // Check if service charge is enabled and applicable to current service type
+  const isServiceChargeEnabled = siteSettings?.service_charge_enabled ?? false;
+  const serviceChargePercentage = siteSettings?.service_charge_percentage ?? 7.5;
+  const applicableServiceTypes = siteSettings?.service_charge_applicable_to ?? [];
+  const isServiceChargeApplicable = isServiceChargeEnabled && applicableServiceTypes.includes(serviceType);
+
+  // Calculate service charge and final total
+  const serviceCharge = isServiceChargeApplicable 
+    ? subtotal * (serviceChargePercentage / 100)
+    : 0;
+  const finalTotal = subtotal + serviceCharge;
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,7 +89,9 @@ ${cartItems.map(item => {
   return itemDetails;
 }).join('\n')}
 
-💰 TOTAL: ₱${totalPrice}
+💰 SUBTOTAL: ₱${subtotal.toFixed(2)}
+${isServiceChargeApplicable ? `💼 Service Charge (${serviceChargePercentage}%): ₱${serviceCharge.toFixed(2)}` : ''}
+💰 TOTAL: ₱${finalTotal.toFixed(2)}
 ${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
 
 💳 Payment: ${selectedPaymentMethod?.name || paymentMethod}
@@ -133,10 +151,20 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
               ))}
             </div>
             
-            <div className="border-t border-blue-200 pt-4">
-              <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black">
+            <div className="border-t border-blue-200 pt-4 space-y-2">
+              <div className="flex items-center justify-between text-lg text-gray-700">
+                <span>Subtotal:</span>
+                <span>₱{subtotal.toFixed(2)}</span>
+              </div>
+              {isServiceChargeApplicable && (
+                <div className="flex items-center justify-between text-lg text-gray-700">
+                  <span>Service Charge ({serviceChargePercentage}%):</span>
+                  <span>₱{serviceCharge.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black pt-2 border-t border-blue-200">
                 <span>Total:</span>
-                <span>₱{totalPrice}</span>
+                <span>₱{finalTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -332,7 +360,7 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
                   <p className="text-sm text-gray-600 mb-1">{selectedPaymentMethod.name}</p>
                   <p className="font-mono text-black font-medium">{selectedPaymentMethod.account_number}</p>
                   <p className="text-sm text-gray-600 mb-3">Account Name: {selectedPaymentMethod.account_name}</p>
-                  <p className="text-xl font-semibold text-black">Amount: ₱{totalPrice}</p>
+                  <p className="text-xl font-semibold text-black">Amount: ₱{finalTotal.toFixed(2)}</p>
                 </div>
                 <div className="flex-shrink-0">
                   <img 
@@ -406,10 +434,20 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
             ))}
           </div>
           
-          <div className="border-t border-blue-200 pt-4 mb-6">
-            <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black">
+          <div className="border-t border-blue-200 pt-4 mb-6 space-y-2">
+            <div className="flex items-center justify-between text-lg text-gray-700">
+              <span>Subtotal:</span>
+              <span>₱{subtotal.toFixed(2)}</span>
+            </div>
+            {isServiceChargeApplicable && (
+              <div className="flex items-center justify-between text-lg text-gray-700">
+                <span>Service Charge ({serviceChargePercentage}%):</span>
+                <span>₱{serviceCharge.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black pt-2 border-t border-blue-200">
               <span>Total:</span>
-              <span>₱{totalPrice}</span>
+              <span>₱{finalTotal.toFixed(2)}</span>
             </div>
           </div>
 
