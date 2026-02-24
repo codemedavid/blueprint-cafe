@@ -2,6 +2,7 @@ export interface Variation {
   id: string;
   name: string;
   price: number;
+  type?: string; // e.g., "Size", "Temperature", "Sugar Level"
 }
 
 export interface AddOn {
@@ -35,7 +36,8 @@ export interface MenuItem {
 
 export interface CartItem extends MenuItem {
   quantity: number;
-  selectedVariation?: Variation;
+  selectedVariation?: Variation;      // kept for backward compat (first selected)
+  selectedVariations?: Variation[];   // all selected (one per type)
   selectedAddOns?: AddOn[];
   totalPrice: number;
 }

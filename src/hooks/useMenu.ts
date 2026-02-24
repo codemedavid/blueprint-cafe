@@ -54,7 +54,8 @@ export const useMenu = () => {
           variations: item.variations?.map(v => ({
             id: v.id,
             name: v.name,
-            price: v.price
+            price: v.price,
+            type: v.type || undefined
           })) || [],
           addOns: item.add_ons?.map(a => ({
             id: a.id,
@@ -106,7 +107,8 @@ export const useMenu = () => {
             item.variations.map(v => ({
               menu_item_id: menuItem.id,
               name: v.name,
-              price: v.price
+              price: v.price,
+              type: v.type || null
             }))
           );
 
@@ -171,7 +173,8 @@ export const useMenu = () => {
             updates.variations.map(v => ({
               menu_item_id: id,
               name: v.name,
-              price: v.price
+              price: v.price,
+              type: v.type || null
             }))
           );
 

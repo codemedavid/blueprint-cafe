@@ -9,6 +9,24 @@ import CategoryManager from './CategoryManager';
 import PaymentMethodManager from './PaymentMethodManager';
 import SiteSettingsManager from './SiteSettingsManager';
 
+interface VariationGroup {
+  id: string;
+  type: string;
+  options: Variation[];
+}
+
+function groupVariationsIntoTypes(variations: Variation[]): VariationGroup[] {
+  const map = new Map<string, VariationGroup>();
+  variations.forEach(v => {
+    const key = v.type || 'Variation';
+    if (!map.has(key)) {
+      map.set(key, { id: `vg-${key}-${Date.now()}`, type: key, options: [] });
+    }
+    map.get(key)!.options.push(v);
+  });
+  return Array.from(map.values());
+}
+
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('beracah_admin_auth') === 'true';
@@ -22,6 +40,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     name: '',
     description: '',
@@ -36,6 +55,7 @@ const AdminDashboard: React.FC = () => {
   const handleAddItem = () => {
     setCurrentView('add');
     const defaultCategory = categories.length > 0 ? categories[0].id : 'dim-sum';
+    setVariationGroups([]);
     setFormData({
       name: '',
       description: '',
@@ -51,6 +71,7 @@ const AdminDashboard: React.FC = () => {
   const handleEditItem = (item: MenuItem) => {
     setEditingItem(item);
     setFormData(item);
+    setVariationGroups(groupVariationsIntoTypes(item.variations || []));
     setCurrentView('edit');
   };
 
@@ -73,11 +94,17 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
+    // Flatten variationGroups into the variations array before saving
+    const flatVariations: Variation[] = variationGroups.flatMap(group =>
+      group.options.map(opt => ({ ...opt, type: group.type }))
+    );
+    const dataToSave = { ...formData, variations: flatVariations };
+
     try {
       if (editingItem) {
-        await updateMenuItem(editingItem.id, formData);
+        await updateMenuItem(editingItem.id, dataToSave);
       } else {
-        await addMenuItem(formData as Omit<MenuItem, 'id'>);
+        await addMenuItem(dataToSave as Omit<MenuItem, 'id'>);
       }
       setCurrentView('items');
       setEditingItem(null);
@@ -174,27 +201,53 @@ const AdminDashboard: React.FC = () => {
     setShowBulkActions(selectedItems.length > 0);
   }, [selectedItems]);
 
-  const addVariation = () => {
-    const newVariation: Variation = {
-      id: `var-${Date.now()}`,
-      name: '',
-      price: 0
-    };
-    setFormData({
-      ...formData,
-      variations: [...(formData.variations || []), newVariation]
-    });
+  // Variation group helpers
+  const addVariationType = () => {
+    setVariationGroups(prev => [
+      ...prev,
+      { id: `vg-${Date.now()}`, type: '', options: [] }
+    ]);
   };
 
-  const updateVariation = (index: number, field: keyof Variation, value: string | number) => {
-    const updatedVariations = [...(formData.variations || [])];
-    updatedVariations[index] = { ...updatedVariations[index], [field]: value };
-    setFormData({ ...formData, variations: updatedVariations });
+  const updateVariationGroupType = (groupId: string, newType: string) => {
+    setVariationGroups(prev =>
+      prev.map(g => g.id === groupId ? { ...g, type: newType } : g)
+    );
   };
 
-  const removeVariation = (index: number) => {
-    const updatedVariations = formData.variations?.filter((_, i) => i !== index) || [];
-    setFormData({ ...formData, variations: updatedVariations });
+  const removeVariationGroup = (groupId: string) => {
+    setVariationGroups(prev => prev.filter(g => g.id !== groupId));
+  };
+
+  const addOptionToGroup = (groupId: string) => {
+    setVariationGroups(prev =>
+      prev.map(g =>
+        g.id === groupId
+          ? { ...g, options: [...g.options, { id: `var-${Date.now()}`, name: '', price: 0 }] }
+          : g
+      )
+    );
+  };
+
+  const updateOptionInGroup = (groupId: string, optIndex: number, field: 'name' | 'price', value: string | number) => {
+    setVariationGroups(prev =>
+      prev.map(g => {
+        if (g.id !== groupId) return g;
+        const updated = [...g.options];
+        updated[optIndex] = { ...updated[optIndex], [field]: value };
+        return { ...g, options: updated };
+      })
+    );
+  };
+
+  const removeOptionFromGroup = (groupId: string, optIndex: number) => {
+    setVariationGroups(prev =>
+      prev.map(g =>
+        g.id === groupId
+          ? { ...g, options: g.options.filter((_, i) => i !== optIndex) }
+          : g
+      )
+    );
   };
 
   const addAddOn = () => {
@@ -475,38 +528,83 @@ const AdminDashboard: React.FC = () => {
             {/* Variations Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-playfair font-medium text-black">Size Variations</h3>
+                <div>
+                  <h3 className="text-lg font-playfair font-medium text-black">Variation Types</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">Group options by type (e.g., Size, Temperature, Sugar Level)</p>
+                </div>
                 <button
-                  onClick={addVariation}
+                  onClick={addVariationType}
                   className="flex items-center space-x-2 px-3 py-2 bg-cream-100 text-black rounded-lg hover:bg-cream-200 transition-colors duration-200"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Add Variation</span>
+                  <span>Add Type</span>
                 </button>
               </div>
 
-              {formData.variations?.map((variation, index) => (
-                <div key={variation.id} className="flex items-center space-x-3 mb-3 p-4 bg-gray-50 rounded-lg">
-                  <input
-                    type="text"
-                    value={variation.name}
-                    onChange={(e) => updateVariation(index, 'name', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Variation name (e.g., Small, Medium, Large)"
-                  />
-                  <input
-                    type="number"
-                    value={variation.price}
-                    onChange={(e) => updateVariation(index, 'price', Number(e.target.value))}
-                    className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Price"
-                  />
-                  <button
-                    onClick={() => removeVariation(index)}
-                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+              {variationGroups.length === 0 && (
+                <p className="text-sm text-gray-400 italic py-3">No variation types yet. Click "Add Type" to create one.</p>
+              )}
+
+              {variationGroups.map((group) => (
+                <div key={group.id} className="mb-4 border border-gray-200 rounded-xl overflow-hidden">
+                  {/* Type header */}
+                  <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <input
+                      type="text"
+                      value={group.type}
+                      onChange={(e) => updateVariationGroupType(group.id, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-medium text-sm"
+                      placeholder="Type name (e.g., Size, Temperature, Sugar Level)"
+                    />
+                    <button
+                      onClick={() => removeVariationGroup(group.id)}
+                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      title="Remove this type"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Options within this type */}
+                  <div className="p-4 space-y-2">
+                    {group.options.length === 0 && (
+                      <p className="text-xs text-gray-400 italic">No options yet.</p>
+                    )}
+                    {group.options.map((opt, optIndex) => (
+                      <div key={opt.id} className="flex items-center space-x-3">
+                        <input
+                          type="text"
+                          value={opt.name}
+                          onChange={(e) => updateOptionInGroup(group.id, optIndex, 'name', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                          placeholder="Option name (e.g., Small, Hot, 50%)"
+                        />
+                        <div className="relative w-28">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₱</span>
+                          <input
+                            type="number"
+                            value={opt.price}
+                            onChange={(e) => updateOptionInGroup(group.id, optIndex, 'price', Number(e.target.value))}
+                            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                            placeholder="0"
+                          />
+                        </div>
+                        <button
+                          onClick={() => removeOptionFromGroup(group.id, optIndex)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => addOptionToGroup(group.id)}
+                      className="flex items-center space-x-1.5 mt-1 text-sm text-green-700 hover:text-green-800 transition-colors duration-200"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>Add Option</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

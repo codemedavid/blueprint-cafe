@@ -5,10 +5,10 @@ export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const calculateItemPrice = (item: MenuItem, variation?: Variation, addOns?: AddOn[]) => {
+  const calculateItemPrice = (item: MenuItem, variations?: Variation[], addOns?: AddOn[]) => {
     let price = item.basePrice;
-    if (variation) {
-      price += variation.price;
+    if (variations) {
+      variations.forEach(v => { price += v.price; });
     }
     if (addOns) {
       addOns.forEach(addOn => {
@@ -18,9 +18,14 @@ export const useCart = () => {
     return price;
   };
 
-  const addToCart = useCallback((item: MenuItem, quantity: number = 1, variation?: Variation, addOns?: AddOn[]) => {
-    const totalPrice = calculateItemPrice(item, variation, addOns);
-    
+  const addToCart = useCallback((item: MenuItem, quantity: number = 1, variations?: Variation | Variation[], addOns?: AddOn[]) => {
+    // Accept both a single Variation (legacy) and Variation[] (multi-type)
+    const variationsArray: Variation[] = variations
+      ? Array.isArray(variations) ? variations : [variations]
+      : [];
+
+    const totalPrice = calculateItemPrice(item, variationsArray, addOns);
+
     // Group add-ons by name and sum their quantities
     const groupedAddOns = addOns?.reduce((groups, addOn) => {
       const existing = groups.find(g => g.id === addOn.id);
@@ -31,14 +36,21 @@ export const useCart = () => {
       }
       return groups;
     }, [] as (AddOn & { quantity: number })[]);
-    
+
+    const variationsKey = variationsArray.map(v => v.id).sort().join(',') || 'default';
+
     setCartItems(prev => {
-      const existingItem = prev.find(cartItem => 
-        cartItem.id === item.id && 
-        cartItem.selectedVariation?.id === variation?.id &&
-        JSON.stringify(cartItem.selectedAddOns?.map(a => `${a.id}-${a.quantity || 1}`).sort()) === JSON.stringify(groupedAddOns?.map(a => `${a.id}-${a.quantity}`).sort())
-      );
-      
+      const existingItem = prev.find(cartItem => {
+        const cartVarsKey = (cartItem.selectedVariations || (cartItem.selectedVariation ? [cartItem.selectedVariation] : []))
+          .map(v => v.id).sort().join(',') || 'default';
+        return (
+          cartItem.id === item.id &&
+          cartVarsKey === variationsKey &&
+          JSON.stringify(cartItem.selectedAddOns?.map(a => `${a.id}-${a.quantity || 1}`).sort()) ===
+            JSON.stringify(groupedAddOns?.map(a => `${a.id}-${a.quantity}`).sort())
+        );
+      });
+
       if (existingItem) {
         return prev.map(cartItem =>
           cartItem === existingItem
@@ -46,12 +58,13 @@ export const useCart = () => {
             : cartItem
         );
       } else {
-        const uniqueId = `${item.id}-${variation?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
-        return [...prev, { 
+        const uniqueId = `${item.id}-${variationsKey}-${addOns?.map(a => a.id).join(',') || 'none'}`;
+        return [...prev, {
           ...item,
           id: uniqueId,
           quantity,
-          selectedVariation: variation,
+          selectedVariation: variationsArray[0],       // first for backward compat
+          selectedVariations: variationsArray,
           selectedAddOns: groupedAddOns || [],
           totalPrice
         }];

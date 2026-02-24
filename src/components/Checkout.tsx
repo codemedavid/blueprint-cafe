@@ -75,8 +75,11 @@ ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 📋 ORDER DETAILS:
 ${cartItems.map(item => {
   let itemDetails = `• ${item.name}`;
-  if (item.selectedVariation) {
-    itemDetails += ` (${item.selectedVariation.name})`;
+  const allVariations = item.selectedVariations && item.selectedVariations.length > 0
+    ? item.selectedVariations
+    : item.selectedVariation ? [item.selectedVariation] : [];
+  if (allVariations.length > 0) {
+    itemDetails += ` (${allVariations.map(v => v.name).join(', ')})`;
   }
   if (item.selectedAddOns && item.selectedAddOns.length > 0) {
     itemDetails += ` + ${item.selectedAddOns.map(addOn => 

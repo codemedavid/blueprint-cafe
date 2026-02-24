@@ -64,9 +64,14 @@ const Cart: React.FC<CartProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-lg font-blueprint-bold text-blueprint-dark mb-1">{item.name}</h3>
-                {item.selectedVariation && (
-                  <p className="text-sm text-blueprint-gray-soft mb-1 font-blueprint">Size: {item.selectedVariation.name}</p>
-                )}
+                {(item.selectedVariations && item.selectedVariations.length > 0
+                  ? item.selectedVariations
+                  : item.selectedVariation ? [item.selectedVariation] : []
+                ).map(v => (
+                  <p key={v.id} className="text-sm text-blueprint-gray-soft mb-0.5 font-blueprint">
+                    {v.type ? `${v.type}: ` : ''}{v.name}
+                  </p>
+                ))}
                 {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                   <p className="text-sm text-blueprint-gray-soft mb-1 font-blueprint">
                     Add-ons: {item.selectedAddOns.map(addOn => 
