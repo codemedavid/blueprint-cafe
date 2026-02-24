@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
 export const useImageUpload = () => {
   const [uploading, setUploading] = useState(false);
@@ -16,49 +19,57 @@ export const useImageUpload = () => {
         throw new Error('Please upload a valid image file (JPEG, PNG, WebP, or GIF)');
       }
 
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      // Validate file size (10MB limit — Cloudinary free tier supports up to 10MB)
+      const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
-        throw new Error('Image size must be less than 5MB');
+        throw new Error('Image size must be less than 10MB');
       }
 
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      // Build form data for Cloudinary unsigned upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('folder', 'blueprint-cafe');
 
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
+      // Use XMLHttpRequest for real upload progress tracking
+      const url: string = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percent);
           }
-          return prev + 10;
-        });
-      }, 100);
+        };
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('menu-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type
-        });
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve(response.secure_url);
+            } catch {
+              reject(new Error('Failed to parse upload response'));
+            }
+          } else {
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              reject(new Error(errorResponse.error?.message || 'Upload failed'));
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          }
+        };
 
-      clearInterval(progressInterval);
+        xhr.onerror = () => {
+          reject(new Error('Network error during upload'));
+        };
+
+        xhr.open('POST', UPLOAD_URL);
+        xhr.send(formData);
+      });
+
       setUploadProgress(100);
-
-      if (error) {
-        throw error;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('menu-images')
-        .getPublicUrl(data.path);
-
-      return publicUrl;
+      return url;
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
@@ -68,23 +79,11 @@ export const useImageUpload = () => {
     }
   };
 
-  const deleteImage = async (imageUrl: string): Promise<void> => {
-    try {
-      // Extract file path from URL
-      const urlParts = imageUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-
-      const { error } = await supabase.storage
-        .from('menu-images')
-        .remove([fileName]);
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      throw error;
-    }
+  const deleteImage = async (_imageUrl: string): Promise<void> => {
+    // Cloudinary image deletion requires the Admin API (server-side only).
+    // The UI already handles removal gracefully by clearing the image reference,
+    // so this is intentionally a no-op on the client side.
+    return;
   };
 
   return {

@@ -48,3 +48,7 @@ The migration adds three new settings to your `site_settings` table:
 
 These can be configured later in the Admin Dashboard under Site Settings.
 
+
+
+
+
