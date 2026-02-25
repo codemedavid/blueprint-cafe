@@ -31,8 +31,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice: _totalPrice,
   const applicableServiceTypes = siteSettings?.service_charge_applicable_to ?? [];
   const isServiceChargeApplicable = isServiceChargeEnabled && applicableServiceTypes.includes(serviceType);
 
+  // Label differs by service type
+  const feeLabel = serviceType === 'dine-in' ? 'Service Charge' : 'Packaging Fee';
+
   // Calculate service charge and final total
-  const serviceCharge = isServiceChargeApplicable 
+  const serviceCharge = isServiceChargeApplicable
     ? subtotal * (serviceChargePercentage / 100)
     : 0;
   const finalTotal = subtotal + serviceCharge;
@@ -93,7 +96,7 @@ ${cartItems.map(item => {
 }).join('\n')}
 
 💰 SUBTOTAL: ₱${subtotal.toFixed(2)}
-${isServiceChargeApplicable ? `💼 Service Charge (${serviceChargePercentage}%): ₱${serviceCharge.toFixed(2)}` : ''}
+${isServiceChargeApplicable ? `💼 ${feeLabel} (${serviceChargePercentage}%): ₱${serviceCharge.toFixed(2)}` : ''}
 💰 TOTAL: ₱${finalTotal.toFixed(2)}
 ${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
 
@@ -161,7 +164,7 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
               </div>
               {isServiceChargeApplicable && (
                 <div className="flex items-center justify-between text-lg text-gray-700">
-                  <span>Service Charge ({serviceChargePercentage}%):</span>
+                  <span>{feeLabel} ({serviceChargePercentage}%):</span>
                   <span>₱{serviceCharge.toFixed(2)}</span>
                 </div>
               )}
@@ -444,7 +447,7 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
             </div>
             {isServiceChargeApplicable && (
               <div className="flex items-center justify-between text-lg text-gray-700">
-                <span>Service Charge ({serviceChargePercentage}%):</span>
+                <span>{feeLabel} ({serviceChargePercentage}%):</span>
                 <span>₱{serviceCharge.toFixed(2)}</span>
               </div>
             )}

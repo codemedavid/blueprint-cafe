@@ -22,14 +22,14 @@ export const useSiteSettings = () => {
       // Transform the data into a more usable format
       const serviceChargeEnabledValue = data.find(s => s.id === 'service_charge_enabled')?.value || 'false';
       const serviceChargePercentageValue = data.find(s => s.id === 'service_charge_percentage')?.value || '7.5';
-      const serviceChargeApplicableToValue = data.find(s => s.id === 'service_charge_applicable_to')?.value || '["dine-in", "delivery"]';
+      const serviceChargeApplicableToValue = data.find(s => s.id === 'service_charge_applicable_to')?.value || '["dine-in", "delivery", "pickup"]';
       
       let serviceChargeApplicableTo: string[] = [];
       try {
         serviceChargeApplicableTo = JSON.parse(serviceChargeApplicableToValue);
       } catch (e) {
         console.error('Error parsing service_charge_applicable_to:', e);
-        serviceChargeApplicableTo = ['dine-in', 'delivery'];
+        serviceChargeApplicableTo = ['dine-in', 'delivery', 'pickup'];
       }
 
       const settings: SiteSettings = {
