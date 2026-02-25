@@ -97,6 +97,7 @@ export type Database = {
           menu_item_id: string;
           name: string;
           price: number;
+          type: string | null;
           created_at: string;
         };
         Insert: {
@@ -104,6 +105,7 @@ export type Database = {
           menu_item_id: string;
           name: string;
           price: number;
+          type?: string | null;
           created_at?: string;
         };
         Update: {
@@ -111,6 +113,7 @@ export type Database = {
           menu_item_id?: string;
           name?: string;
           price?: number;
+          type?: string | null;
           created_at?: string;
         };
       };

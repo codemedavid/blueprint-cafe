@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
     <header className="sticky top-0 z-50 bg-blueprint-off-white/95 backdrop-blur-md border-b border-blueprint-blue/20 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <button 
+          <button
             onClick={onMenuClick}
             className="flex items-center space-x-4 text-blueprint-dark hover:text-blueprint-blue transition-colors duration-200"
           >
@@ -44,16 +44,16 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                   siteSettings?.site_name?.toUpperCase() || "BLUEPRINT"
                 )}
               </h1>
-             
+
             </div>
           </button>
 
           <div className="flex items-center space-x-4">
             <div className="hidden sm:block text-right">
               <p className="text-sm font-blueprint text-blueprint-gray-soft">OPEN DAILY</p>
-              <p className="text-sm font-blueprint-bold text-blueprint-dark">9:00AM - 10:00PM</p>
+              <p className="text-sm font-blueprint-bold text-blueprint-dark">8:00AM - 11:00PM</p>
             </div>
-            <button 
+            <button
               onClick={onCartClick}
               className="relative p-3 text-blueprint-gray-soft hover:text-blueprint-blue hover:bg-blueprint-blue/5 rounded-full transition-all duration-200"
             >

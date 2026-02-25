@@ -235,15 +235,22 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
       {/* Customization Full-Screen Sheet */}
       {showCustomization && (() => {
+        // Same-category first, then popular, then rest — always fills up to 6
         const suggestedItems = allItems
-          .filter(i => i.id !== item.id && i.category === item.category && i.available !== false)
+          .filter(i => i.id !== item.id && i.available !== false)
+          .sort((a, b) => {
+            const aMatch = a.category === item.category ? 0 : 1;
+            const bMatch = b.category === item.category ? 0 : 1;
+            if (aMatch !== bMatch) return aMatch - bMatch;
+            return (b.popular ? 1 : 0) - (a.popular ? 1 : 0);
+          })
           .slice(0, 6);
 
         return (
         <div className="fixed inset-0 z-50 flex flex-col">
           {/* Sheet — full screen, slides up */}
           <div
-            className="relative w-full h-full flex flex-col overflow-hidden"
+            className="relative w-full h-full flex flex-col"
             style={{
               background: '#FAFAF8',
               animation: 'ccSlideUp 0.42s cubic-bezier(0.32, 0.72, 0, 1)',
@@ -470,7 +477,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       You might also like
                     </h3>
                   </div>
-                  <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+                  <div
+                    className="flex gap-3 pb-2"
+                    style={{ overflowX: 'auto', scrollbarWidth: 'none' }}
+                  >
                     {suggestedItems.map((s) => {
                       const sCartQty = cartItems.find(c => c.id === s.id)?.quantity || 0;
                       const displayPrice = s.effectivePrice ?? s.basePrice;
