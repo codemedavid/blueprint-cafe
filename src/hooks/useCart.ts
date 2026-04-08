@@ -44,7 +44,7 @@ export const useCart = () => {
         const cartVarsKey = (cartItem.selectedVariations || (cartItem.selectedVariation ? [cartItem.selectedVariation] : []))
           .map(v => v.id).sort().join(',') || 'default';
         return (
-          cartItem.id === item.id &&
+          cartItem.menuItemId === item.id &&
           cartVarsKey === variationsKey &&
           JSON.stringify(cartItem.selectedAddOns?.map(a => `${a.id}-${a.quantity || 1}`).sort()) ===
             JSON.stringify(groupedAddOns?.map(a => `${a.id}-${a.quantity}`).sort())
@@ -62,6 +62,7 @@ export const useCart = () => {
         return [...prev, {
           ...item,
           id: uniqueId,
+          menuItemId: item.id,
           quantity,
           selectedVariation: variationsArray[0],       // first for backward compat
           selectedVariations: variationsArray,

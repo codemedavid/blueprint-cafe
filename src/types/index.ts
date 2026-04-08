@@ -35,6 +35,7 @@ export interface MenuItem {
 }
 
 export interface CartItem extends MenuItem {
+  menuItemId: string;
   quantity: number;
   selectedVariation?: Variation;      // kept for backward compat (first selected)
   selectedVariations?: Variation[];   // all selected (one per type)
@@ -49,16 +50,15 @@ export interface OrderData {
   serviceType: 'dine-in' | 'pickup' | 'delivery';
   address?: string;
   pickupTime?: string;
-  // Dine-in specific fields
   partySize?: number;
   dineInTime?: string;
-  paymentMethod: 'gcash' | 'maya' | 'bank-transfer';
+  paymentMethod: PaymentMethod;
   referenceNumber?: string;
   total: number;
   notes?: string;
 }
 
-export type PaymentMethod = 'gcash' | 'maya' | 'bank-transfer';
+export type PaymentMethod = string;
 export type ServiceType = 'dine-in' | 'pickup' | 'delivery';
 
 // Site Settings Types
