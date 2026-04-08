@@ -1,26 +1,38 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { buildMessengerOrderMessage, buildOrderSubmission } from '../lib/orders';
 
 interface CheckoutProps {
   cartItems: CartItem[];
   totalPrice: number;
   onBack: () => void;
+  onOrderPlaced: () => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice: _totalPrice, onBack }) => {
+const Checkout: React.FC<CheckoutProps> = ({
+  cartItems,
+  totalPrice: _totalPrice,
+  onBack,
+  onOrderPlaced,
+}) => {
   const { paymentMethods } = usePaymentMethods();
   const { siteSettings } = useSiteSettings();
+  const createOrder = useMutation(api.orders.createOrder);
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [serviceType, setServiceType] = useState<ServiceType>('dine-in');
   const [pickupTime, setPickupTime] = useState('5-10');
   const [customTime, setCustomTime] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Calculate subtotal from cart items
   const subtotal = cartItems.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
@@ -57,62 +69,44 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice: _totalPrice,
     setStep('payment');
   };
 
-  const handlePlaceOrder = () => {
-    const timeInfo = serviceType === 'pickup' 
-      ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
-      : '';
-    
-    const orderDetails = `
-🛒 Blueprint Cafe ORDER
+  const handlePlaceOrder = async () => {
+    if (!selectedPaymentMethod || isSubmitting) {
+      return;
+    }
 
-👤 Customer: ${customerName}
-📞 Contact: ${contactNumber}
-📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
-${serviceType === 'delivery' ? `📍 Self Booking - Pin: Blueprint Cafe
-9730 kamagong st, Makati City
-Contact Person: Blueprint Cafe
-Number: 0917 190 4334` : ''}
-${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
+    setIsSubmitting(true);
+    setSubmitError(null);
 
+    try {
+      const order = buildOrderSubmission({
+        cartItems,
+        customerName,
+        contactNumber,
+        serviceType,
+        pickupTimeSelection: pickupTime,
+        customPickupTime: customTime,
+        paymentMethodId: paymentMethod,
+        paymentMethodName: selectedPaymentMethod.name,
+        notes,
+        subtotal,
+        serviceChargeEnabled: isServiceChargeApplicable,
+        serviceChargeLabel: feeLabel,
+        serviceChargePercentage: isServiceChargeApplicable ? serviceChargePercentage : 0,
+        serviceChargeAmount: serviceCharge,
+        total: finalTotal,
+      });
 
-📋 ORDER DETAILS:
-${cartItems.map(item => {
-  let itemDetails = `• ${item.name}`;
-  const allVariations = item.selectedVariations && item.selectedVariations.length > 0
-    ? item.selectedVariations
-    : item.selectedVariation ? [item.selectedVariation] : [];
-  if (allVariations.length > 0) {
-    itemDetails += ` (${allVariations.map(v => v.name).join(', ')})`;
-  }
-  if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-    itemDetails += ` + ${item.selectedAddOns.map(addOn => 
-      addOn.quantity && addOn.quantity > 1 
-        ? `${addOn.name} x${addOn.quantity}`
-        : addOn.name
-    ).join(', ')}`;
-  }
-  itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
-  return itemDetails;
-}).join('\n')}
+      await createOrder({ order });
 
-💰 SUBTOTAL: ₱${subtotal.toFixed(2)}
-${isServiceChargeApplicable ? `💼 ${feeLabel} (${serviceChargePercentage}%): ₱${serviceCharge.toFixed(2)}` : ''}
-💰 TOTAL: ₱${finalTotal.toFixed(2)}
-${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
-
-💳 Payment: ${selectedPaymentMethod?.name || paymentMethod}
-📸 Payment Screenshot: Please attach your payment receipt screenshot
-
-${notes ? `📝 Notes: ${notes}` : ''}
-
-Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
-    `.trim();
-
-    const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/BlueprintCafe?text=${encodedMessage}`;
-    
-    window.open(messengerUrl, '_blank');
-    
+      const messengerUrl = `https://m.me/BlueprintCafe?text=${encodeURIComponent(buildMessengerOrderMessage(order))}`;
+      window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+      onOrderPlaced();
+    } catch (error) {
+      console.error('Error saving order to Convex:', error);
+      setSubmitError('We could not save your order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isDetailsValid = customerName && contactNumber && 
@@ -457,11 +451,22 @@ Please confirm this order to proceed. Thank you for choosing BlueprintCafe! 🥟
             </div>
           </div>
 
+          {submitError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
+
           <button
             onClick={handlePlaceOrder}
-            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02]"
+            disabled={isSubmitting || !selectedPaymentMethod}
+            className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${
+              isSubmitting || !selectedPaymentMethod
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02]'
+            }`}
           >
-            Place Order via Messenger
+            {isSubmitting ? 'Saving Order...' : 'Place Order via Messenger'}
           </button>
           
           <p className="text-xs text-gray-500 text-center mt-3">
