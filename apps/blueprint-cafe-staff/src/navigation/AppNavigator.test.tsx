@@ -44,8 +44,8 @@ jest.mock('../providers/AuthProvider', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-jest.mock('../screens/OrdersBoardScreen', () => ({
-  OrdersBoardScreen: () => {
+jest.mock('../screens/OrdersScreen', () => ({
+  OrdersScreen: () => {
     const { Text } = require('react-native');
     return <Text>Orders Screen</Text>;
   },

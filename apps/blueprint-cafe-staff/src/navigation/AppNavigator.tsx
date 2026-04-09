@@ -6,7 +6,7 @@ import { theme } from '../constants/theme';
 import type { Id } from '../lib/convexApi';
 import { useAuth } from '../providers/AuthProvider';
 import { OrderDetailScreen } from '../screens/OrderDetailScreen';
-import { OrdersBoardScreen } from '../screens/OrdersBoardScreen';
+import { OrdersScreen } from '../screens/OrdersScreen';
 
 type RootStackParamList = {
   Login: undefined;
@@ -55,7 +55,7 @@ export function AppNavigator() {
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Orders" component={OrdersBoardScreen} />
+        <Stack.Screen name="Orders" component={OrdersScreen} />
         <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
