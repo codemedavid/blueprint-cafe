@@ -8,44 +8,33 @@
  * @module
  */
 
-import type * as orderFields from "../orderFields.js";
-import type * as orders from "../orders.js";
-
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
-
-declare const fullApi: ApiFromModules<{
-  orderFields: typeof orderFields;
-  orders: typeof orders;
-}>;
+import type * as orderFields from "../orderFields.js";
+import type * as orderStatus from "../orderStatus.js";
+import type * as orders from "../orders.js";
 
 /**
- * A utility for referencing Convex functions in your app's public API.
+ * A utility for referencing Convex functions in your app's API.
  *
  * Usage:
  * ```js
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
+declare const fullApi: ApiFromModules<{
+  orderFields: typeof orderFields;
+  orderStatus: typeof orderStatus;
+  orders: typeof orders;
+}>;
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, "public">
 >;
-
-/**
- * A utility for referencing Convex functions in your app's internal API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = internal.myModule.myFunction;
- * ```
- */
 export declare const internal: FilterApi<
   typeof fullApi,
   FunctionReference<any, "internal">
 >;
-
-export declare const components: {};

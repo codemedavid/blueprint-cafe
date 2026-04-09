@@ -72,6 +72,15 @@ export const listBoardOrders = query({
   },
 });
 
+export const getOrderById = query({
+  args: {
+    orderId: v.id('orders'),
+  },
+  handler: async (ctx, { orderId }) => {
+    return await ctx.db.get(orderId);
+  },
+});
+
 export const advanceOrderStatus = mutation({
   args: {
     orderId: v.id('orders'),

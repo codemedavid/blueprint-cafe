@@ -6,13 +6,43 @@ vi.mock('./_generated/server', () => ({
   query: (definition: unknown) => definition,
 }));
 
-import { advanceOrderStatus, listBoardOrders } from './orders';
+import { advanceOrderStatus, getOrderById, listBoardOrders } from './orders';
 
 beforeEach(() => {
   vi.restoreAllMocks();
 });
 
 describe('orders board workflow', () => {
+  it('getOrderById returns the matching order when it exists', async () => {
+    const get = vi.fn().mockResolvedValue({
+      _id: 'order-1',
+      status: 'pending',
+    });
+    const ctx = { db: { get } };
+
+    const result = await getOrderById.handler(ctx as never, {
+      orderId: 'order-1',
+    });
+
+    expect(get).toHaveBeenCalledWith('order-1');
+    expect(result).toEqual({
+      _id: 'order-1',
+      status: 'pending',
+    });
+  });
+
+  it('getOrderById returns null when order does not exist', async () => {
+    const get = vi.fn().mockResolvedValue(null);
+    const ctx = { db: { get } };
+
+    const result = await getOrderById.handler(ctx as never, {
+      orderId: 'missing-order',
+    });
+
+    expect(get).toHaveBeenCalledWith('missing-order');
+    expect(result).toBeNull();
+  });
+
   it('listBoardOrders queries each status independently and returns board order', async () => {
     const rowsByStatus = {
       pending: [
