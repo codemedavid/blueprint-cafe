@@ -1,4 +1,5 @@
 import { v } from 'convex/values';
+import { orderStatusValidator } from './orderStatus';
 
 export const serviceTypeValidator = v.union(
   v.literal('dine-in'),
@@ -35,7 +36,7 @@ export const orderLineFields = {
 };
 
 export const orderFields = {
-  status: v.literal('pending'),
+  status: orderStatusValidator,
   source: v.literal('web_checkout'),
   customerName: v.string(),
   contactNumber: v.string(),

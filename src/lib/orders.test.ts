@@ -22,6 +22,28 @@ const sampleCartItem: CartItem = {
 };
 
 describe('buildOrderSubmission', () => {
+  it('keeps new checkout orders pending even when workflow statuses exist', () => {
+    const order = buildOrderSubmission({
+      cartItems: [sampleCartItem],
+      customerName: 'Grace Hopper',
+      contactNumber: '09179876543',
+      serviceType: 'pickup',
+      pickupTimeSelection: '5-10',
+      customPickupTime: '',
+      paymentMethodId: 'maya',
+      paymentMethodName: 'Maya',
+      notes: '',
+      subtotal: 460,
+      serviceChargeEnabled: false,
+      serviceChargeLabel: 'Packaging Fee',
+      serviceChargePercentage: 0,
+      serviceChargeAmount: 0,
+      total: 460,
+    });
+
+    expect(order.status).toBe('pending');
+  });
+
   it('creates a pending order payload with stable line and menu ids', () => {
     const order = buildOrderSubmission({
       cartItems: [sampleCartItem],
