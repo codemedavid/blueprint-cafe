@@ -52,7 +52,7 @@ describe('OrdersScreen', () => {
 
     render(<OrdersScreen />);
 
-    expect(screen.getByRole('button', { name: 'Pending' })).toHaveAccessibilityState({
+    expect(screen.getByRole('tab', { name: 'Pending' })).toHaveAccessibilityState({
       selected: true,
     });
     expect(screen.getByText('Ari')).toBeTruthy();
@@ -68,12 +68,12 @@ describe('OrdersScreen', () => {
 
     render(<OrdersScreen />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Preparing' }));
+    fireEvent.press(screen.getByRole('tab', { name: 'Preparing' }));
     expect(screen.getByText('Bea')).toBeTruthy();
     expect(screen.queryByText('Ari')).toBeNull();
     expect(screen.queryByText('Cole')).toBeNull();
 
-    fireEvent.press(screen.getByRole('button', { name: 'Ready' }));
+    fireEvent.press(screen.getByRole('tab', { name: 'Ready' }));
     expect(screen.getByText('Cole')).toBeTruthy();
     expect(screen.queryByText('Ari')).toBeNull();
   });

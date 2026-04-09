@@ -4,17 +4,18 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../constants/theme';
-import { api, type Id } from '../lib/convexApi';
-import type { StaffOrder, StaffOrderStatus } from '../types/orders';
-
-type OrderDetailRouteParams = {
-  OrderDetail: {
-    orderId: Id<'orders'>;
-  };
-};
+import { api } from '../lib/convexApi';
+import type { RootStackParamList } from '../types/navigation';
+import {
+  formatOrderCurrency,
+  ORDER_SERVICE_TYPE_LABELS,
+  ORDER_STATUS_LABELS,
+  type StaffOrder,
+  type StaffOrderStatus,
+} from '../types/orders';
 
 export function OrderDetailScreen() {
-  const route = useRoute<RouteProp<OrderDetailRouteParams, 'OrderDetail'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'OrderDetail'>>();
   const advanceOrderStatus = useMutation(api.orders.advanceOrderStatus);
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -79,11 +80,11 @@ export function OrderDetailScreen() {
 
           <View style={styles.summaryRow}>
             <Text style={styles.label}>Status</Text>
-            <Text style={styles.value}>{statusLabels[order.status]}</Text>
+            <Text style={styles.value}>{ORDER_STATUS_LABELS[order.status]}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.label}>Service</Text>
-            <Text style={styles.value}>{serviceTypeLabels[order.serviceType]}</Text>
+            <Text style={styles.value}>{ORDER_SERVICE_TYPE_LABELS[order.serviceType]}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.label}>Payment</Text>
@@ -91,7 +92,7 @@ export function OrderDetailScreen() {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.label}>Total</Text>
-            <Text style={styles.value}>{formatCurrency(order.total)}</Text>
+            <Text style={styles.value}>{formatOrderCurrency(order.total)}</Text>
           </View>
 
           {order.notes ? (
@@ -138,19 +139,6 @@ export function OrderDetailScreen() {
   );
 }
 
-const statusLabels: Record<StaffOrderStatus, string> = {
-  pending: 'Pending',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  completed: 'Completed',
-};
-
-const serviceTypeLabels: Record<StaffOrder['serviceType'], string> = {
-  'dine-in': 'Dine-in',
-  pickup: 'Pickup',
-  delivery: 'Delivery',
-};
-
 const nextActionLabels: Record<Exclude<StaffOrderStatus, 'completed'>, string> = {
   pending: 'Start Preparing',
   preparing: 'Mark Ready',
@@ -164,38 +152,34 @@ function getNextActionLabel(status: StaffOrderStatus) {
   return nextActionLabels[status];
 }
 
-function formatCurrency(total: number) {
-  return `₱${Math.round(total).toLocaleString('en-PH')}`;
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
   content: {
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
     gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xl,
   },
   title: {
     color: theme.colors.text,
-    fontSize: 28,
+    fontSize: 21,
     fontWeight: '700',
   },
   card: {
-    backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
     gap: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(248, 250, 252, 0.08)',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
   },
   customerName: {
     color: theme.colors.text,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '700',
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -204,40 +188,40 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 14,
+    fontSize: 12,
   },
   value: {
     color: theme.colors.text,
-    fontSize: 14,
+    fontSize: 13,
   },
   block: {
-    gap: 4,
-    paddingTop: theme.spacing.xs,
+    gap: theme.spacing.xs,
+    paddingTop: theme.spacing.sm,
   },
   sectionTitle: {
     color: theme.colors.accent,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   itemsList: {
-    gap: 3,
+    gap: theme.spacing.xs,
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: 14,
+    fontSize: 12,
   },
   error: {
     color: '#fca5a5',
-    fontSize: 14,
+    fontSize: 12,
   },
   actionButton: {
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
     alignSelf: 'flex-start',
     backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.pill,
-    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
   actionButtonPressed: {
@@ -248,7 +232,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: theme.colors.text,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
   },
 });

@@ -17,12 +17,12 @@ describe('OrdersStatusTabs', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Pending' })).toHaveAccessibilityState({
+    expect(screen.getByRole('tab', { name: 'Pending' })).toHaveAccessibilityState({
       selected: true,
     });
-    expect(screen.getByRole('button', { name: 'Preparing' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Ready' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Completed' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Preparing' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Ready' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Completed' })).toBeTruthy();
   });
 
   it('calls onSelect with the pressed status', () => {
@@ -41,7 +41,7 @@ describe('OrdersStatusTabs', () => {
       />,
     );
 
-    fireEvent.press(screen.getByRole('button', { name: 'Preparing' }));
+    fireEvent.press(screen.getByRole('tab', { name: 'Preparing' }));
 
     expect(onSelect).toHaveBeenCalledWith('preparing');
   });

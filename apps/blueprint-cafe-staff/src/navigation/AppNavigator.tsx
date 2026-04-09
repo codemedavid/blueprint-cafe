@@ -3,16 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../constants/theme';
-import type { Id } from '../lib/convexApi';
 import { useAuth } from '../providers/AuthProvider';
 import { OrderDetailScreen } from '../screens/OrderDetailScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
-
-type RootStackParamList = {
-  Login: undefined;
-  Orders: undefined;
-  OrderDetail: { orderId: Id<'orders'> };
-};
+import type { RootStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -72,28 +66,28 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: '700',
     marginBottom: theme.spacing.sm,
   },
   body: {
     color: theme.colors.muted,
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
     marginBottom: theme.spacing.lg,
   },
   button: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
   },
   buttonPressed: {
     opacity: 0.85,
   },
   buttonText: {
     color: theme.colors.text,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

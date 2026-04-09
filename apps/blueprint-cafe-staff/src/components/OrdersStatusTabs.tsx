@@ -19,14 +19,14 @@ export function OrdersStatusTabs({
   onSelect,
 }: OrdersStatusTabsProps) {
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="tablist" style={styles.container}>
       {ORDER_STATUS_TABS.map((tab) => {
         const isSelected = tab.status === selectedStatus;
 
         return (
           <Pressable
             key={tab.status}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityLabel={tab.label}
             accessibilityState={{ selected: isSelected }}
             onPress={() => onSelect(tab.status)}
@@ -36,7 +36,9 @@ export function OrdersStatusTabs({
               pressed && styles.tabPressed,
             ]}
           >
-            <Text style={[styles.label, isSelected && styles.labelSelected]}>{tab.label}</Text>
+            <Text numberOfLines={1} style={[styles.label, isSelected && styles.labelSelected]}>
+              {tab.label}
+            </Text>
             <Text style={[styles.count, isSelected && styles.labelSelected]}>
               {counts[tab.status]}
             </Text>
@@ -50,30 +52,31 @@ export function OrdersStatusTabs({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   tab: {
     flex: 1,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(248, 250, 252, 0.16)',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
     backgroundColor: theme.colors.surface,
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    flexDirection: 'row',
+    gap: 4,
   },
   tabSelected: {
-    borderColor: theme.colors.primary,
-    backgroundColor: 'rgba(249, 115, 22, 0.14)',
+    borderColor: 'rgba(234, 88, 12, 0.75)',
+    backgroundColor: 'rgba(234, 88, 12, 0.12)',
   },
   tabPressed: {
     opacity: 0.85,
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   labelSelected: {
@@ -81,7 +84,7 @@ const styles = StyleSheet.create({
   },
   count: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 });

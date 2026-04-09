@@ -1,3 +1,5 @@
+import type { Id } from '../lib/convexApi';
+
 export type StaffOrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';
 
 export type StaffOrderItem = {
@@ -6,8 +8,8 @@ export type StaffOrderItem = {
   quantity: number;
 };
 
-export type StaffOrder = {
-  _id: string;
+export type StaffOrder<OrderId extends string = string> = {
+  _id: OrderId;
   customerName: string;
   serviceType: 'dine-in' | 'pickup' | 'delivery';
   paymentMethodName: string;
@@ -29,3 +31,22 @@ export const ORDER_STATUS_TABS: ReadonlyArray<{
   { label: 'Ready', status: 'ready' },
   { label: 'Completed', status: 'completed' },
 ];
+
+export const ORDER_STATUS_LABELS: Record<StaffOrderStatus, string> = {
+  pending: 'Pending',
+  preparing: 'Preparing',
+  ready: 'Ready',
+  completed: 'Completed',
+};
+
+export const ORDER_SERVICE_TYPE_LABELS: Record<StaffOrder['serviceType'], string> = {
+  'dine-in': 'Dine-in',
+  pickup: 'Pickup',
+  delivery: 'Delivery',
+};
+
+export function formatOrderCurrency(total: number) {
+  return `₱${Math.round(total).toLocaleString('en-PH')}`;
+}
+
+export type StaffOrderRecord = StaffOrder<Id<'orders'>>;
