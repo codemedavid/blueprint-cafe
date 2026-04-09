@@ -1,7 +1,7 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../constants/theme';
 import { api, type Id } from '../lib/convexApi';
@@ -46,7 +46,11 @@ export function OrderDetailScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      testID="order-detail-scroll"
+    >
       <Text style={styles.title}>Order Detail</Text>
       {order === undefined ? <Text style={styles.meta}>Loading order...</Text> : null}
       {order === null ? <Text style={styles.meta}>Order not found.</Text> : null}
@@ -109,7 +113,7 @@ export function OrderDetailScreen() {
           ) : null}
         </View>
       ) : null}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -146,9 +150,12 @@ function formatCurrency(total: number) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    padding: theme.spacing.xl,
     backgroundColor: theme.colors.background,
+  },
+  content: {
+    padding: theme.spacing.xl,
     gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.xxl,
   },
   title: {
     color: theme.colors.text,

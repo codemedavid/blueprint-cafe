@@ -114,6 +114,22 @@ describe('OrderDetailScreen', () => {
     });
   });
 
+  it('shows Mark Ready as the primary action for preparing orders', () => {
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'preparing',
+      }),
+    );
+    mockUseMutation.mockReturnValue(jest.fn());
+
+    render(<OrderDetailScreen />);
+
+    expect(screen.getByRole('button', { name: 'Mark Ready' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Start Preparing' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Complete Order' })).toBeNull();
+  });
+
   it('hides the action button for completed orders', () => {
     mockUseQuery.mockReturnValue(
       createOrder({
@@ -168,5 +184,18 @@ describe('OrderDetailScreen', () => {
       expect(screen.getByText('Updating status...')).toBeTruthy();
       expect(actionButton).toBeDisabled();
     });
+  });
+
+  it('renders inside a scrollable container', () => {
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+      }),
+    );
+    mockUseMutation.mockReturnValue(jest.fn());
+
+    render(<OrderDetailScreen />);
+
+    expect(screen.getByTestId('order-detail-scroll')).toBeTruthy();
   });
 });
