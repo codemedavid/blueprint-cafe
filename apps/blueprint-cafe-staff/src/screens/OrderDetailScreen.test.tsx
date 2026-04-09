@@ -114,6 +114,32 @@ describe('OrderDetailScreen', () => {
     });
   });
 
+  it('does not allow an immediate second tap after a successful advance while status is still stale', async () => {
+    const advanceOrderStatus = jest
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Order status changed'));
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'pending',
+      }),
+    );
+    mockUseMutation.mockReturnValue(advanceOrderStatus);
+
+    render(<OrderDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Start Preparing' }));
+
+    await waitFor(() => {
+      expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText('Updating status...')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Start Preparing' })).toBeNull();
+    expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Unable to update order. Please try again.')).toBeNull();
+  });
+
   it('shows Mark Ready as the primary action for preparing orders', () => {
     mockUseQuery.mockReturnValue(
       createOrder({

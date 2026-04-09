@@ -1,6 +1,6 @@
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { useMutation, useQuery } from 'convex/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../constants/theme';
@@ -18,15 +18,32 @@ export function OrderDetailScreen() {
   const advanceOrderStatus = useMutation(api.orders.advanceOrderStatus);
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [pendingSyncStatus, setPendingSyncStatus] = useState<StaffOrderStatus | null>(null);
 
   const order = useQuery(api.orders.getOrderById, {
     orderId: route.params.orderId,
   });
 
-  const actionLabel = order ? getNextActionLabel(order.status) : null;
+  const isAwaitingStatusSync =
+    order !== undefined &&
+    order !== null &&
+    pendingSyncStatus !== null &&
+    order.status === pendingSyncStatus;
+
+  const actionLabel = order && !isAwaitingStatusSync ? getNextActionLabel(order.status) : null;
+
+  useEffect(() => {
+    if (order === undefined || order === null || pendingSyncStatus === null) {
+      return;
+    }
+
+    if (order.status !== pendingSyncStatus) {
+      setPendingSyncStatus(null);
+    }
+  }, [order, pendingSyncStatus]);
 
   const handleAdvanceStatus = async () => {
-    if (!order || !actionLabel || isUpdating) {
+    if (!order || !actionLabel || isUpdating || isAwaitingStatusSync) {
       return;
     }
 
@@ -38,8 +55,10 @@ export function OrderDetailScreen() {
         orderId: order._id,
         currentStatus: order.status,
       });
+      setPendingSyncStatus(order.status);
     } catch (error) {
       setStatusError('Unable to update order. Please try again.');
+      setPendingSyncStatus(null);
     } finally {
       setIsUpdating(false);
     }
@@ -94,7 +113,9 @@ export function OrderDetailScreen() {
           </View>
 
           {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
-          {isUpdating ? <Text style={styles.meta}>Updating status...</Text> : null}
+          {isUpdating || isAwaitingStatusSync ? (
+            <Text style={styles.meta}>Updating status...</Text>
+          ) : null}
 
           {actionLabel ? (
             <Pressable
