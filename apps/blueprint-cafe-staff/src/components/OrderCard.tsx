@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../constants/theme';
 import type { StaffOrder, StaffOrderStatus } from '../types/orders';
@@ -14,18 +14,12 @@ const serviceTypeLabels: Record<StaffOrder['serviceType'], string> = {
   delivery: 'Delivery',
 };
 
-const nextActionLabels: Record<Exclude<StaffOrderStatus, 'completed'>, string> = {
-  pending: 'Start Preparing',
-  preparing: 'Mark Ready',
-  ready: 'Complete Order',
-};
-
 function formatCurrency(total: number) {
   return `₱${Math.round(total).toLocaleString('en-PH')}`;
 }
 
 export function OrderCard({ order, onAdvance }: OrderCardProps) {
-  const actionLabel = order.status === 'completed' ? null : nextActionLabels[order.status];
+  void onAdvance;
 
   return (
     <View style={styles.card}>
@@ -54,16 +48,6 @@ export function OrderCard({ order, onAdvance }: OrderCardProps) {
         ))}
       </View>
 
-      {actionLabel ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={actionLabel}
-          onPress={() => onAdvance(order._id, order.status)}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
-        >
-          <Text style={styles.actionText}>{actionLabel}</Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 }
@@ -116,21 +100,5 @@ const styles = StyleSheet.create({
   itemText: {
     color: theme.colors.text,
     fontSize: 14,
-  },
-  actionButton: {
-    marginTop: theme.spacing.xs,
-    alignSelf: 'flex-start',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.pill,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-  },
-  actionButtonPressed: {
-    opacity: 0.85,
-  },
-  actionText: {
-    color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: '700',
   },
 });

@@ -1,10 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 
 import { OrderCard } from './OrderCard';
 import type { StaffOrder } from '../types/orders';
 
 describe('OrderCard', () => {
-  it('renders order summary details and advances the order when the action is pressed', () => {
+  it('renders order summary details without status action controls', () => {
     const order: StaffOrder = {
       _id: 'order-1',
       customerName: 'Blueprint Tester',
@@ -30,10 +30,9 @@ describe('OrderCard', () => {
     expect(screen.getByText('2x Iced Americano')).toBeTruthy();
     expect(screen.getByText('1x Cheesecake')).toBeTruthy();
     expect(screen.getByText('₱230')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Start Preparing' })).toBeTruthy();
-
-    fireEvent.press(screen.getByRole('button', { name: 'Start Preparing' }));
-
-    expect(onAdvance).toHaveBeenCalledWith('order-1', 'pending');
+    expect(screen.queryByRole('button', { name: 'Start Preparing' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Mark Ready' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Complete Order' })).toBeNull();
+    expect(onAdvance).not.toHaveBeenCalled();
   });
 });
