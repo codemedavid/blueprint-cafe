@@ -80,6 +80,18 @@ describe('OrderDetailScreen', () => {
     expect(screen.getByText('1x Brownie')).toBeTruthy();
   });
 
+  it('shows loading and missing-order states', () => {
+    mockUseQuery.mockReturnValue(undefined);
+    mockUseMutation.mockReturnValue(jest.fn());
+
+    const { rerender } = render(<OrderDetailScreen />);
+    expect(screen.getByText('Loading order...')).toBeTruthy();
+
+    mockUseQuery.mockReturnValue(null);
+    rerender(<OrderDetailScreen />);
+    expect(screen.getByText('Order not found.')).toBeTruthy();
+  });
+
   it('calls advanceOrderStatus with orderId and currentStatus on successful action', async () => {
     const advanceOrderStatus = jest.fn().mockResolvedValue(undefined);
     mockUseQuery.mockReturnValue(
@@ -134,6 +146,27 @@ describe('OrderDetailScreen', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Unable to update order. Please try again.')).toBeTruthy();
+    });
+  });
+
+  it('shows in-flight state and disables action while updating', async () => {
+    const advanceOrderStatus = jest.fn(() => new Promise(() => {}));
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'pending',
+      }),
+    );
+    mockUseMutation.mockReturnValue(advanceOrderStatus);
+
+    render(<OrderDetailScreen />);
+
+    const actionButton = screen.getByRole('button', { name: 'Start Preparing' });
+    fireEvent.press(actionButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Updating status...')).toBeTruthy();
+      expect(actionButton).toBeDisabled();
     });
   });
 });
