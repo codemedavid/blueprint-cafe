@@ -31,6 +31,8 @@ export function getNextOrderStatus(status: OrderStatus): OrderStatus | null {
     case 'completed':
     case 'canceled':
       return null;
+    default:
+      return null;
   }
 }
 
