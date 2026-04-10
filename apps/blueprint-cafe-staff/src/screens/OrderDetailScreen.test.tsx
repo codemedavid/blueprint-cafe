@@ -215,6 +215,59 @@ describe('OrderDetailScreen', () => {
     });
   });
 
+  it('does not allow an immediate second cancel tap while status is still stale', async () => {
+    const cancelOrder = jest
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Order already canceled'));
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'pending',
+      }),
+    );
+    mockUseMutation
+      .mockReturnValueOnce(jest.fn())
+      .mockReturnValueOnce(cancelOrder);
+
+    render(<OrderDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel Order' }));
+
+    await waitFor(() => {
+      expect(cancelOrder).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText('Updating status...')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Cancel Order' })).toBeNull();
+    expect(cancelOrder).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Unable to cancel order. Please try again.')).toBeNull();
+  });
+
+  it('hides Cancel Order while a successful advance is awaiting query sync', async () => {
+    const advanceOrderStatus = jest.fn().mockResolvedValue(undefined);
+    const cancelOrder = jest.fn();
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'preparing',
+      }),
+    );
+    mockUseMutation
+      .mockReturnValueOnce(advanceOrderStatus)
+      .mockReturnValueOnce(cancelOrder);
+
+    render(<OrderDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Mark Ready' }));
+
+    await waitFor(() => {
+      expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText('Updating status...')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Cancel Order' })).toBeNull();
+    expect(cancelOrder).not.toHaveBeenCalled();
+  });
+
   it('hides Cancel Order for ready orders', () => {
     mockUseQuery.mockReturnValue(
       createOrder({

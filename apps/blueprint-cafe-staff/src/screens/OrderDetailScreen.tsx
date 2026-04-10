@@ -34,8 +34,9 @@ export function OrderDetailScreen() {
     pendingSyncStatus !== null &&
     order.status === pendingSyncStatus;
 
-  const actionLabel = order && !isAwaitingStatusSync ? NEXT_ORDER_ACTION_LABELS[order.status] ?? null : null;
-  const showCancelAction = order ? canCancelOrder(order.status) : false;
+  const actionLabel =
+    order && !isAwaitingStatusSync ? NEXT_ORDER_ACTION_LABELS[order.status] ?? null : null;
+  const showCancelAction = order && !isAwaitingStatusSync ? canCancelOrder(order.status) : false;
 
   useEffect(() => {
     if (order === undefined || order === null || pendingSyncStatus === null) {
@@ -70,7 +71,7 @@ export function OrderDetailScreen() {
   };
 
   const handleCancelOrder = async () => {
-    if (!order || isCanceling || isUpdating) {
+    if (!order || isCanceling || isUpdating || isAwaitingStatusSync) {
       return;
     }
 
@@ -79,8 +80,10 @@ export function OrderDetailScreen() {
 
     try {
       await cancelOrder({ orderId: order._id });
+      setPendingSyncStatus(order.status);
     } catch {
       setStatusError('Unable to cancel order. Please try again.');
+      setPendingSyncStatus(null);
     } finally {
       setIsCanceling(false);
     }
@@ -150,12 +153,12 @@ export function OrderDetailScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={actionLabel}
-                disabled={isUpdating || isCanceling}
+                disabled={isUpdating || isCanceling || isAwaitingStatusSync}
                 onPress={handleAdvanceStatus}
                 style={({ pressed }) => [
                   styles.primaryAction,
-                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
-                  (isUpdating || isCanceling) && styles.buttonDisabled,
+                  pressed && !isUpdating && !isCanceling && !isAwaitingStatusSync && styles.buttonPressed,
+                  (isUpdating || isCanceling || isAwaitingStatusSync) && styles.buttonDisabled,
                 ]}
               >
                 <Text style={styles.primaryActionText}>{actionLabel}</Text>
@@ -166,12 +169,12 @@ export function OrderDetailScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Cancel Order"
-                disabled={isUpdating || isCanceling}
+                disabled={isUpdating || isCanceling || isAwaitingStatusSync}
                 onPress={handleCancelOrder}
                 style={({ pressed }) => [
                   styles.destructiveAction,
-                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
-                  (isUpdating || isCanceling) && styles.buttonDisabled,
+                  pressed && !isUpdating && !isCanceling && !isAwaitingStatusSync && styles.buttonPressed,
+                  (isUpdating || isCanceling || isAwaitingStatusSync) && styles.buttonDisabled,
                 ]}
               >
                 <Text style={styles.destructiveActionText}>Cancel Order</Text>
