@@ -1,5 +1,6 @@
 import { ConvexError } from 'convex/values';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { BOARD_STATUS_ORDER, canCancelOrderStatus, isTerminalOrderStatus } from './orderStatus';
 
 vi.mock('./_generated/server', () => ({
   mutation: (definition: unknown) => definition,
@@ -13,6 +14,21 @@ beforeEach(() => {
 });
 
 describe('orders board workflow', () => {
+  it('includes canceled in board status order and terminal checks', () => {
+    expect(BOARD_STATUS_ORDER).toEqual([
+      'pending',
+      'preparing',
+      'ready',
+      'completed',
+      'canceled',
+    ]);
+    expect(canCancelOrderStatus('pending')).toBe(true);
+    expect(canCancelOrderStatus('preparing')).toBe(true);
+    expect(canCancelOrderStatus('ready')).toBe(false);
+    expect(isTerminalOrderStatus('completed')).toBe(true);
+    expect(isTerminalOrderStatus('canceled')).toBe(true);
+  });
+
   it('getOrderById returns the matching order when it exists', async () => {
     const get = vi.fn().mockResolvedValue({
       _id: 'order-1',
@@ -52,9 +68,10 @@ describe('orders board workflow', () => {
       preparing: [{ _id: 'preparing-1', status: 'preparing' }],
       ready: [{ _id: 'ready-1', status: 'ready' }],
       completed: [{ _id: 'completed-1', status: 'completed' }],
+      canceled: [{ _id: 'canceled-1', status: 'canceled' }],
     } as const;
 
-    const statuses = ['pending', 'preparing', 'ready', 'completed'] as const;
+    const statuses = ['pending', 'preparing', 'ready', 'completed', 'canceled'] as const;
     const observedStatuses: string[] = [];
     const orderMocks: Array<ReturnType<typeof vi.fn>> = [];
     const takeMocks: Array<ReturnType<typeof vi.fn>> = [];
@@ -85,7 +102,7 @@ describe('orders board workflow', () => {
     const ctx = { db: { query } };
     const result = await listBoardOrders.handler(ctx as never, {});
 
-    expect(query).toHaveBeenCalledTimes(4);
+    expect(query).toHaveBeenCalledTimes(5);
     expect(observedStatuses).toEqual(statuses);
     for (const order of orderMocks) {
       expect(order).toHaveBeenCalledWith('desc');
@@ -98,6 +115,7 @@ describe('orders board workflow', () => {
       ...rowsByStatus.preparing,
       ...rowsByStatus.ready,
       ...rowsByStatus.completed,
+      ...rowsByStatus.canceled,
     ]);
   });
 

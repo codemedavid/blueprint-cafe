@@ -9,5 +9,6 @@ export default defineSchema({
     startedAt: v.optional(v.number()),
     readyAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
+    canceledAt: v.optional(v.number()),
   }).index('by_status_and_submittedAt', ['status', 'submittedAt']),
 });
