@@ -24,7 +24,9 @@ export function OrderRow<OrderId extends string>({
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <View style={styles.headerRow}>
-        <Text style={styles.customerName}>{order.customerName}</Text>
+        <Text numberOfLines={1} style={styles.customerName}>
+          {order.customerName}
+        </Text>
         <Text style={styles.total}>{formatOrderCurrency(order.total)}</Text>
       </View>
       <View style={styles.metaRow}>
@@ -65,6 +67,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   customerName: {
+    flex: 1,
+    minWidth: 0,
     color: theme.colors.text,
     fontSize: 16,
     fontWeight: '700',
@@ -78,6 +82,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   total: {
+    flexShrink: 0,
     color: theme.colors.text,
     fontSize: 15,
     fontWeight: '700',

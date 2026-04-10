@@ -38,4 +38,23 @@ describe('OrderRow', () => {
 
     expect(onPress).toHaveBeenCalledWith('order-1');
   });
+
+  it('keeps the total visible for an intentionally long customer name', () => {
+    const order: StaffOrder = {
+      _id: 'order-2',
+      customerName:
+        'Blueprint Cafe Guest With A Very Long Name That Should Truncate On Small Screens',
+      serviceType: 'pickup',
+      paymentMethodName: 'Card',
+      items: [{ lineItemId: 'item-3', name: 'Spanish Latte', quantity: 1 }],
+      total: 120,
+      status: 'pending',
+      submittedAt: 1710000000000,
+    };
+
+    render(<OrderRow order={order} onPress={jest.fn()} />);
+
+    expect(screen.getByText(order.customerName)).toHaveProp('numberOfLines', 1);
+    expect(screen.getByText('₱120')).toBeTruthy();
+  });
 });

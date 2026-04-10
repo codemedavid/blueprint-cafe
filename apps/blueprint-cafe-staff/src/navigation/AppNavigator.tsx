@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   buttonText: {
-    color: theme.colors.text,
+    color: theme.colors.surfaceElevated,
     fontSize: 13,
     fontWeight: '700',
   },
