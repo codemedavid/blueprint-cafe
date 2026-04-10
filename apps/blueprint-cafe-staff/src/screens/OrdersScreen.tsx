@@ -18,6 +18,7 @@ const EMPTY_COUNTS: StaffOrderStatusCounts = {
   preparing: 0,
   ready: 0,
   completed: 0,
+  canceled: 0,
 };
 
 export function OrdersScreen() {

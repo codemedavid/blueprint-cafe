@@ -139,7 +139,7 @@ export function OrderDetailScreen() {
   );
 }
 
-const nextActionLabels: Record<Exclude<StaffOrderStatus, 'completed'>, string> = {
+const nextActionLabels: Partial<Record<Exclude<StaffOrderStatus, 'completed'>, string>> = {
   pending: 'Start Preparing',
   preparing: 'Mark Ready',
   ready: 'Complete Order',
