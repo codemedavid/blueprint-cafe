@@ -198,7 +198,25 @@ describe('orders board workflow', () => {
         orderId: 'order-1',
         currentStatus: 'completed',
       }),
-    ).rejects.toBeInstanceOf(ConvexError);
+    ).rejects.toThrowError('Order is already terminal');
+
+    expect(patch).not.toHaveBeenCalled();
+  });
+
+  it('advanceOrderStatus rejects canceled orders with ConvexError', async () => {
+    const get = vi.fn().mockResolvedValue({
+      _id: 'order-1',
+      status: 'canceled',
+    });
+    const patch = vi.fn();
+    const ctx = { db: { get, patch } };
+
+    await expect(
+      advanceOrderStatus.handler(ctx as never, {
+        orderId: 'order-1',
+        currentStatus: 'canceled',
+      }),
+    ).rejects.toThrowError('Order is already terminal');
 
     expect(patch).not.toHaveBeenCalled();
   });

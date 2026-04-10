@@ -100,7 +100,7 @@ export const advanceOrderStatus = mutation({
     const patch = getAdvanceOrderPatch(order.status, Date.now());
 
     if (!patch) {
-      throw new ConvexError('Order is already completed');
+      throw new ConvexError('Order is already terminal');
     }
 
     await ctx.db.patch(orderId, patch);
