@@ -10,6 +10,7 @@ import {
   formatOrderCurrency,
   ORDER_SERVICE_TYPE_LABELS,
   ORDER_STATUS_LABELS,
+  NEXT_ORDER_ACTION_LABELS,
   type StaffOrder,
   type StaffOrderStatus,
 } from '../types/orders';
@@ -139,17 +140,11 @@ export function OrderDetailScreen() {
   );
 }
 
-const nextActionLabels: Partial<Record<Exclude<StaffOrderStatus, 'completed'>, string>> = {
-  pending: 'Start Preparing',
-  preparing: 'Mark Ready',
-  ready: 'Complete Order',
-};
-
 function getNextActionLabel(status: StaffOrderStatus) {
   if (status === 'completed') {
     return null;
   }
-  return nextActionLabels[status];
+  return NEXT_ORDER_ACTION_LABELS[status] ?? null;
 }
 
 const styles = StyleSheet.create({
