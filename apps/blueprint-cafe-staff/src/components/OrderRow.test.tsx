@@ -4,7 +4,7 @@ import type { StaffOrder } from '../types/orders';
 import { OrderRow } from './OrderRow';
 
 describe('OrderRow', () => {
-  it('renders compact order summary info without workflow action controls', () => {
+  it('renders the redesigned two-row order summary without workflow action controls', () => {
     const order: StaffOrder = {
       _id: 'order-1',
       customerName: 'Blueprint Tester',
@@ -23,10 +23,12 @@ describe('OrderRow', () => {
     render(<OrderRow order={order} onPress={onPress} />);
 
     expect(screen.getByText('Blueprint Tester')).toBeTruthy();
+    expect(screen.getByText('₱230')).toBeTruthy();
     expect(screen.getByText('Dine-in')).toBeTruthy();
     expect(screen.getByText('Cash')).toBeTruthy();
     expect(screen.getByText('2 items')).toBeTruthy();
-    expect(screen.getByText('₱230')).toBeTruthy();
+    expect(screen.getAllByText('•')).toHaveLength(2);
+    expect(screen.queryByText('·')).toBeNull();
 
     expect(screen.queryByRole('button', { name: 'Start Preparing' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Mark Ready' })).toBeNull();
