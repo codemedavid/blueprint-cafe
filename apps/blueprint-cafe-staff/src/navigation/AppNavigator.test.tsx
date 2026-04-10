@@ -64,7 +64,7 @@ describe('AppNavigator', () => {
     mockNavigator.mockReset();
   });
 
-  it('shows updated orders-focused copy and sign-in action when unauthenticated', () => {
+  it('shows the light-theme staff orders entry copy when signed out', () => {
     const signIn = jest.fn();
     mockUseAuth.mockReturnValue({
       isAuthenticated: false,
@@ -73,9 +73,9 @@ describe('AppNavigator', () => {
 
     render(<AppNavigator />);
 
-    expect(
-      screen.getByText('Open the live orders list for staff operations on this device.'),
-    ).toBeTruthy();
+    expect(screen.getByText('Blueprint Cafe')).toBeTruthy();
+    expect(screen.getByText('Staff Orders')).toBeTruthy();
+    expect(screen.getByText('Open the live queue for this device.')).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Open Orders' }));
 
     expect(signIn).toHaveBeenCalledTimes(1);

@@ -15,20 +15,21 @@ function LoginScreen() {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>Staff Login</Text>
-      <Text style={styles.body}>
-        Open the live orders list for staff operations on this device.
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Open Orders"
-        onPress={() => {
-          void signIn();
-        }}
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-      >
-        <Text style={styles.buttonText}>Open Orders</Text>
-      </Pressable>
+      <View style={styles.loginCard}>
+        <Text style={styles.eyebrow}>Blueprint Cafe</Text>
+        <Text style={styles.title}>Staff Orders</Text>
+        <Text style={styles.body}>Open the live queue for this device.</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Orders"
+          onPress={() => {
+            void signIn();
+          }}
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        >
+          <Text style={styles.buttonText}>Open Orders</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -63,6 +64,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: theme.spacing.xl,
     backgroundColor: theme.colors.background,
+  },
+  loginCard: {
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  eyebrow: {
+    color: theme.colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    marginBottom: theme.spacing.xs,
+    textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
