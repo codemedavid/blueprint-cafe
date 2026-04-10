@@ -3,7 +3,9 @@ import { mutation, query } from './_generated/server';
 import { orderFields } from './orderFields';
 import {
   BOARD_STATUS_ORDER,
+  canCancelOrderStatus,
   getNextOrderStatus,
+  isTerminalOrderStatus,
   orderStatusValidator,
   type OrderStatus,
 } from './orderStatus';
@@ -37,6 +39,30 @@ function getAdvanceOrderPatch(status: OrderStatus, now: number):
 
   return { status: nextStatus, completedAt: now };
 }
+
+export const cancelOrder = mutation({
+  args: {
+    orderId: v.id('orders'),
+  },
+  handler: async (ctx, { orderId }) => {
+    const order = await ctx.db.get(orderId);
+
+    if (!order) {
+      throw new ConvexError('Order not found');
+    }
+
+    if (!canCancelOrderStatus(order.status)) {
+      throw new ConvexError('Order cannot be canceled');
+    }
+
+    await ctx.db.patch(orderId, {
+      status: 'canceled',
+      canceledAt: Date.now(),
+    });
+
+    return { orderId, status: 'canceled' as const };
+  },
+});
 
 export const createOrder = mutation({
   args: {
@@ -95,6 +121,10 @@ export const advanceOrderStatus = mutation({
 
     if (order.status !== currentStatus) {
       throw new ConvexError('Order status changed');
+    }
+
+    if (isTerminalOrderStatus(order.status)) {
+      throw new ConvexError('Order is already terminal');
     }
 
     const patch = getAdvanceOrderPatch(order.status, Date.now());

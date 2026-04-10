@@ -7,7 +7,7 @@ vi.mock('./_generated/server', () => ({
   query: (definition: unknown) => definition,
 }));
 
-import { advanceOrderStatus, getOrderById, listBoardOrders } from './orders';
+import { advanceOrderStatus, cancelOrder, getOrderById, listBoardOrders } from './orders';
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -219,5 +219,90 @@ describe('orders board workflow', () => {
     ).rejects.toThrowError('Order is already terminal');
 
     expect(patch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['pending'],
+    ['preparing'],
+  ])('cancelOrder moves %s orders to canceled and stamps canceledAt', async (status) => {
+    vi.spyOn(Date, 'now').mockReturnValue(1710000000000);
+
+    const get = vi.fn().mockResolvedValue({
+      _id: 'order-1',
+      status,
+    });
+    const patch = vi.fn().mockResolvedValue(undefined);
+    const ctx = { db: { get, patch } };
+
+    const result = await cancelOrder.handler(ctx as never, {
+      orderId: 'order-1',
+    });
+
+    expect(patch).toHaveBeenCalledWith('order-1', {
+      status: 'canceled',
+      canceledAt: 1710000000000,
+    });
+    expect(result).toEqual({
+      orderId: 'order-1',
+      status: 'canceled',
+    });
+  });
+
+  it.each(['ready', 'completed', 'canceled'])(
+    'cancelOrder rejects %s orders',
+    async (status) => {
+      const get = vi.fn().mockResolvedValue({
+        _id: 'order-1',
+        status,
+      });
+      const patch = vi.fn();
+      const ctx = { db: { get, patch } };
+
+      await expect(
+        cancelOrder.handler(ctx as never, {
+          orderId: 'order-1',
+        }),
+      ).rejects.toBeInstanceOf(ConvexError);
+
+      expect(patch).not.toHaveBeenCalled();
+    },
+  );
+
+  it('listBoardOrders includes canceled orders after completed', async () => {
+    const rowsByStatus = {
+      pending: [{ _id: 'pending-1', status: 'pending' }],
+      preparing: [{ _id: 'preparing-1', status: 'preparing' }],
+      ready: [{ _id: 'ready-1', status: 'ready' }],
+      completed: [{ _id: 'completed-1', status: 'completed' }],
+      canceled: [{ _id: 'canceled-1', status: 'canceled' }],
+    } as const;
+
+    const statuses = ['pending', 'preparing', 'ready', 'completed', 'canceled'] as const;
+    const observedStatuses: string[] = [];
+    let callIndex = 0;
+
+    const query = vi.fn(() => {
+      const status = statuses[callIndex++];
+      const take = vi.fn().mockResolvedValue(rowsByStatus[status]);
+      const order = vi.fn(() => ({ take }));
+      const withIndex = vi.fn((_indexName, predicate) => {
+        const eq = vi.fn((field, value) => {
+          if (field === 'status') {
+            observedStatuses.push(value as string);
+          }
+          return null;
+        });
+        predicate({ eq });
+        return { order };
+      });
+      return { withIndex };
+    });
+
+    const ctx = { db: { query } };
+    const result = await listBoardOrders.handler(ctx as never, {});
+
+    expect(query).toHaveBeenCalledTimes(5);
+    expect(observedStatuses).toEqual(statuses);
+    expect(result.at(-1)).toEqual({ _id: 'canceled-1', status: 'canceled' });
   });
 });
