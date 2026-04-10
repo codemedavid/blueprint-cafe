@@ -78,6 +78,28 @@ describe('OrdersScreen', () => {
     expect(screen.queryByText('Ari')).toBeNull();
   });
 
+  it('shows canceled orders when the canceled tab is selected', () => {
+    mockUseQuery.mockReturnValue([
+      createOrder({ _id: 'order-pending', customerName: 'Ari', status: 'pending' }),
+      createOrder({ _id: 'order-canceled', customerName: 'Mina', status: 'canceled' }),
+    ]);
+
+    render(<OrdersScreen />);
+
+    fireEvent.press(screen.getByRole('tab', { name: 'Canceled' }));
+
+    expect(screen.getByText('Mina')).toBeTruthy();
+    expect(screen.queryByText('Ari')).toBeNull();
+  });
+
+  it('shows the redesigned empty-state copy for the selected tab', () => {
+    mockUseQuery.mockReturnValue([]);
+
+    render(<OrdersScreen />);
+
+    expect(screen.getByText('No pending orders right now.')).toBeTruthy();
+  });
+
   it('navigates to order detail with order id when a row is pressed', () => {
     mockUseQuery.mockReturnValue([
       createOrder({ _id: 'order-pending', customerName: 'Ari', status: 'pending' }),

@@ -52,39 +52,40 @@ export function OrdersStatusTabs({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
   tab: {
-    flex: 1,
-    borderRadius: theme.radius.sm,
+    minWidth: '30%',
+    borderRadius: theme.radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.18)',
+    borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 4,
+    gap: theme.spacing.xs,
   },
   tabSelected: {
-    borderColor: 'rgba(234, 88, 12, 0.75)',
-    backgroundColor: 'rgba(234, 88, 12, 0.12)',
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySoft,
   },
   tabPressed: {
     opacity: 0.85,
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
   },
   labelSelected: {
-    color: theme.colors.text,
+    color: theme.colors.primary,
   },
   count: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
   },
 });

@@ -23,64 +23,63 @@ export function OrderRow<OrderId extends string>({
       onPress={() => onPress(order._id)}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
-      <View style={styles.main}>
+      <View style={styles.headerRow}>
         <Text style={styles.customerName}>{order.customerName}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.meta}>{ORDER_SERVICE_TYPE_LABELS[order.serviceType]}</Text>
-          <Text style={styles.separator}>·</Text>
-          <Text style={styles.meta}>{order.paymentMethodName}</Text>
-          <Text style={styles.separator}>·</Text>
-          <Text style={styles.meta}>{order.items.length} items</Text>
-        </View>
+        <Text style={styles.total}>{formatOrderCurrency(order.total)}</Text>
       </View>
-      <Text style={styles.total}>{formatOrderCurrency(order.total)}</Text>
+      <View style={styles.metaRow}>
+        <Text style={styles.meta}>{ORDER_SERVICE_TYPE_LABELS[order.serviceType]}</Text>
+        <Text style={styles.dot}>•</Text>
+        <Text style={styles.meta}>{order.paymentMethodName}</Text>
+        <Text style={styles.dot}>•</Text>
+        <Text style={styles.meta}>{order.items.length} items</Text>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 50,
+    minHeight: 72,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.2)',
+    borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     gap: theme.spacing.xs,
   },
   rowPressed: {
     opacity: 0.85,
   },
-  main: {
-    flex: 1,
-    gap: 2,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing.sm,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 4,
+    gap: theme.spacing.xs,
   },
   customerName: {
     color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
   },
-  separator: {
+  dot: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
   },
   total: {
     color: theme.colors.text,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
   },
 });
