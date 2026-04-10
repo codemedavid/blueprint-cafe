@@ -1,6 +1,11 @@
 import type { Id } from '../lib/convexApi';
 
-export type StaffOrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';
+export type StaffOrderStatus =
+  | 'pending'
+  | 'preparing'
+  | 'ready'
+  | 'completed'
+  | 'canceled';
 
 export type StaffOrderItem = {
   lineItemId: string;
@@ -30,6 +35,7 @@ export const ORDER_STATUS_TABS: ReadonlyArray<{
   { label: 'Preparing', status: 'preparing' },
   { label: 'Ready', status: 'ready' },
   { label: 'Completed', status: 'completed' },
+  { label: 'Canceled', status: 'canceled' },
 ];
 
 export const ORDER_STATUS_LABELS: Record<StaffOrderStatus, string> = {
@@ -37,6 +43,7 @@ export const ORDER_STATUS_LABELS: Record<StaffOrderStatus, string> = {
   preparing: 'Preparing',
   ready: 'Ready',
   completed: 'Completed',
+  canceled: 'Canceled',
 };
 
 export const ORDER_SERVICE_TYPE_LABELS: Record<StaffOrder['serviceType'], string> = {
@@ -47,6 +54,16 @@ export const ORDER_SERVICE_TYPE_LABELS: Record<StaffOrder['serviceType'], string
 
 export function formatOrderCurrency(total: number) {
   return `₱${Math.round(total).toLocaleString('en-PH')}`;
+}
+
+export const NEXT_ORDER_ACTION_LABELS: Partial<Record<StaffOrderStatus, string>> = {
+  pending: 'Start Preparing',
+  preparing: 'Mark Ready',
+  ready: 'Complete Order',
+};
+
+export function canCancelOrder(status: StaffOrderStatus) {
+  return status === 'pending' || status === 'preparing';
 }
 
 export type StaffOrderRecord = StaffOrder<Id<'orders'>>;

@@ -45,4 +45,28 @@ describe('OrdersStatusTabs', () => {
 
     expect(onSelect).toHaveBeenCalledWith('preparing');
   });
+
+  it('renders the canceled tab and allows selecting it', () => {
+    const onSelect = jest.fn();
+
+    render(
+      <OrdersStatusTabs
+        selectedStatus="pending"
+        counts={{
+          pending: 2,
+          preparing: 1,
+          ready: 0,
+          completed: 3,
+          canceled: 4,
+        }}
+        onSelect={onSelect}
+      />,
+    );
+
+    expect(screen.getByRole('tab', { name: 'Canceled' })).toBeTruthy();
+
+    fireEvent.press(screen.getByRole('tab', { name: 'Canceled' }));
+
+    expect(onSelect).toHaveBeenCalledWith('canceled');
+  });
 });
