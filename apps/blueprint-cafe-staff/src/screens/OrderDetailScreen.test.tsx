@@ -21,6 +21,7 @@ jest.mock('../lib/convexApi', () => ({
     orders: {
       getOrderById: { _reference: 'orders.getOrderById' },
       advanceOrderStatus: { _reference: 'orders.advanceOrderStatus' },
+      cancelOrder: { _reference: 'orders.cancelOrder' },
     },
   },
 }));
@@ -189,6 +190,43 @@ describe('OrderDetailScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('Unable to update order. Please try again.')).toBeTruthy();
     });
+  });
+
+  it('shows Cancel Order for pending orders and calls cancelOrder', async () => {
+    const cancelOrder = jest.fn().mockResolvedValue(undefined);
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'pending',
+      }),
+    );
+    mockUseMutation
+      .mockReturnValueOnce(jest.fn())
+      .mockReturnValueOnce(cancelOrder);
+
+    render(<OrderDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel Order' }));
+
+    await waitFor(() => {
+      expect(cancelOrder).toHaveBeenCalledWith({
+        orderId: 'order-123',
+      });
+    });
+  });
+
+  it('hides Cancel Order for ready orders', () => {
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'ready',
+      }),
+    );
+    mockUseMutation.mockReturnValue(jest.fn());
+
+    render(<OrderDetailScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Cancel Order' })).toBeNull();
   });
 
   it('shows in-flight state and disables action while updating', async () => {

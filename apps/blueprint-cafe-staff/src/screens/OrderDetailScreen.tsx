@@ -7,18 +7,20 @@ import { theme } from '../constants/theme';
 import { api } from '../lib/convexApi';
 import type { RootStackParamList } from '../types/navigation';
 import {
+  canCancelOrder,
   formatOrderCurrency,
   ORDER_SERVICE_TYPE_LABELS,
   ORDER_STATUS_LABELS,
   NEXT_ORDER_ACTION_LABELS,
-  type StaffOrder,
   type StaffOrderStatus,
 } from '../types/orders';
 
 export function OrderDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'OrderDetail'>>();
   const advanceOrderStatus = useMutation(api.orders.advanceOrderStatus);
+  const cancelOrder = useMutation(api.orders.cancelOrder);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [pendingSyncStatus, setPendingSyncStatus] = useState<StaffOrderStatus | null>(null);
 
@@ -32,7 +34,8 @@ export function OrderDetailScreen() {
     pendingSyncStatus !== null &&
     order.status === pendingSyncStatus;
 
-  const actionLabel = order && !isAwaitingStatusSync ? getNextActionLabel(order.status) : null;
+  const actionLabel = order && !isAwaitingStatusSync ? NEXT_ORDER_ACTION_LABELS[order.status] ?? null : null;
+  const showCancelAction = order ? canCancelOrder(order.status) : false;
 
   useEffect(() => {
     if (order === undefined || order === null || pendingSyncStatus === null) {
@@ -66,44 +69,60 @@ export function OrderDetailScreen() {
     }
   };
 
+  const handleCancelOrder = async () => {
+    if (!order || isCanceling || isUpdating) {
+      return;
+    }
+
+    setIsCanceling(true);
+    setStatusError(null);
+
+    try {
+      await cancelOrder({ orderId: order._id });
+    } catch {
+      setStatusError('Unable to cancel order. Please try again.');
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.content}
       testID="order-detail-scroll"
     >
-      <Text style={styles.title}>Order Detail</Text>
+      <Text style={styles.eyebrow}>Blueprint Cafe</Text>
+      <Text style={styles.title}>Order Details</Text>
       {order === undefined ? <Text style={styles.meta}>Loading order...</Text> : null}
       {order === null ? <Text style={styles.meta}>Order not found.</Text> : null}
       {order ? (
-        <View style={styles.card}>
-          <Text style={styles.customerName}>{order.customerName}</Text>
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Status</Text>
-            <Text style={styles.value}>{ORDER_STATUS_LABELS[order.status]}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Service</Text>
-            <Text style={styles.value}>{ORDER_SERVICE_TYPE_LABELS[order.serviceType]}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Payment</Text>
-            <Text style={styles.value}>{order.paymentMethodName}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.label}>Total</Text>
-            <Text style={styles.value}>{formatOrderCurrency(order.total)}</Text>
+        <>
+          <View style={styles.heroCard}>
+            <Text style={styles.customerName}>{order.customerName}</Text>
           </View>
 
-          {order.notes ? (
-            <View style={styles.block}>
-              <Text style={styles.sectionTitle}>Notes</Text>
-              <Text style={styles.value}>{order.notes}</Text>
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Order Summary</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.label}>Status</Text>
+              <Text style={styles.value}>{ORDER_STATUS_LABELS[order.status]}</Text>
             </View>
-          ) : null}
+            <View style={styles.summaryRow}>
+              <Text style={styles.label}>Service</Text>
+              <Text style={styles.value}>{ORDER_SERVICE_TYPE_LABELS[order.serviceType]}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.label}>Payment</Text>
+              <Text style={styles.value}>{order.paymentMethodName}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.label}>Total</Text>
+              <Text style={styles.value}>{formatOrderCurrency(order.total)}</Text>
+            </View>
+          </View>
 
-          <View style={styles.block}>
+          <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Items</Text>
             <View style={styles.itemsList}>
               {order.items.map((item) => (
@@ -114,37 +133,55 @@ export function OrderDetailScreen() {
             </View>
           </View>
 
-          {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
-          {isUpdating || isAwaitingStatusSync ? (
-            <Text style={styles.meta}>Updating status...</Text>
+          {order.notes ? (
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Notes</Text>
+              <Text style={styles.value}>{order.notes}</Text>
+            </View>
           ) : null}
 
-          {actionLabel ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={actionLabel}
-              disabled={isUpdating}
-              onPress={handleAdvanceStatus}
-              style={({ pressed }) => [
-                styles.actionButton,
-                pressed && !isUpdating && styles.actionButtonPressed,
-                isUpdating && styles.actionButtonDisabled,
-              ]}
-            >
-              <Text style={styles.actionText}>{actionLabel}</Text>
-            </Pressable>
-          ) : null}
-        </View>
+          <View style={styles.actionCard}>
+            {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
+            {isUpdating || isAwaitingStatusSync ? (
+              <Text style={styles.meta}>Updating status...</Text>
+            ) : null}
+
+            {actionLabel ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={actionLabel}
+                disabled={isUpdating || isCanceling}
+                onPress={handleAdvanceStatus}
+                style={({ pressed }) => [
+                  styles.primaryAction,
+                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
+                  (isUpdating || isCanceling) && styles.buttonDisabled,
+                ]}
+              >
+                <Text style={styles.primaryActionText}>{actionLabel}</Text>
+              </Pressable>
+            ) : null}
+
+            {showCancelAction ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Cancel Order"
+                disabled={isUpdating || isCanceling}
+                onPress={handleCancelOrder}
+                style={({ pressed }) => [
+                  styles.destructiveAction,
+                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
+                  (isUpdating || isCanceling) && styles.buttonDisabled,
+                ]}
+              >
+                <Text style={styles.destructiveActionText}>Cancel Order</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </>
       ) : null}
     </ScrollView>
   );
-}
-
-function getNextActionLabel(status: StaffOrderStatus) {
-  if (status === 'completed') {
-    return null;
-  }
-  return NEXT_ORDER_ACTION_LABELS[status] ?? null;
 }
 
 const styles = StyleSheet.create({
@@ -154,80 +191,113 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: theme.spacing.lg,
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
+  },
+  eyebrow: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
-    fontSize: 21,
+    fontSize: 28,
     fontWeight: '700',
   },
-  card: {
+  heroCard: {
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  sectionCard: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
     gap: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.18)',
+    borderColor: theme.colors.border,
+  },
+  actionCard: {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   customerName: {
     color: theme.colors.text,
-    fontSize: 17,
+    fontSize: 24,
     fontWeight: '700',
-    marginBottom: theme.spacing.sm,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     gap: theme.spacing.md,
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 13,
   },
   value: {
     color: theme.colors.text,
-    fontSize: 13,
-  },
-  block: {
-    gap: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
+    fontSize: 15,
   },
   sectionTitle: {
     color: theme.colors.accent,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.8,
   },
   itemsList: {
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 14,
   },
   error: {
-    color: '#fca5a5',
-    fontSize: 12,
+    color: theme.colors.danger,
+    fontSize: 14,
   },
-  actionButton: {
-    marginTop: theme.spacing.sm,
-    alignSelf: 'flex-start',
+  primaryAction: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.md,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
   },
-  actionButtonPressed: {
+  destructiveAction: {
+    backgroundColor: theme.colors.dangerSoft,
+    borderRadius: theme.radius.md,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+  },
+  buttonPressed: {
     opacity: 0.85,
   },
-  actionButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.6,
   },
-  actionText: {
-    color: theme.colors.text,
-    fontSize: 12,
+  primaryActionText: {
+    color: theme.colors.surfaceElevated,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  destructiveActionText: {
+    color: theme.colors.danger,
+    fontSize: 14,
     fontWeight: '700',
   },
 });
