@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
@@ -8,6 +8,7 @@ import { OrderRow } from '../components/OrderRow';
 import { OrdersStatusTabs } from '../components/OrdersStatusTabs';
 import { theme } from '../constants/theme';
 import { api } from '../lib/convexApi';
+import { triggerOrderAlert } from '../lib/ringtone';
 import type { RootStackParamList } from '../types/navigation';
 import type { StaffOrderRecord, StaffOrderStatus, StaffOrderStatusCounts } from '../types/orders';
 
@@ -16,7 +17,50 @@ type OrdersScreenNavigation = NativeStackNavigationProp<RootStackParamList, 'Ord
 export function OrdersScreen() {
   const navigation = useNavigation<OrdersScreenNavigation>();
   const [selectedStatus, setSelectedStatus] = useState<StaffOrderStatus>('pending');
+  const [appState, setAppState] = useState(AppState.currentState);
   const orders = useQuery(api.orders.listBoardOrders) as StaffOrderRecord[] | undefined;
+  const previousOrderIdsRef = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      setAppState(nextState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (orders === undefined) {
+      return;
+    }
+
+    const currentOrderIds = new Set(orders.map((order) => order._id));
+
+    if (previousOrderIdsRef.current === null) {
+      previousOrderIdsRef.current = currentOrderIds;
+      return;
+    }
+
+    if (appState !== 'active') {
+      previousOrderIdsRef.current = currentOrderIds;
+      return;
+    }
+
+    let newOrderCount = 0;
+    for (const orderId of currentOrderIds) {
+      if (!previousOrderIdsRef.current.has(orderId)) {
+        newOrderCount += 1;
+      }
+    }
+
+    previousOrderIdsRef.current = currentOrderIds;
+
+    for (let i = 0; i < newOrderCount; i += 1) {
+      void triggerOrderAlert();
+    }
+  }, [orders, appState]);
 
   const counts: StaffOrderStatusCounts = {
     pending: 0,

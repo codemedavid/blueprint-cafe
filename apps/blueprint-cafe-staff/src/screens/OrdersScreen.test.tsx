@@ -5,7 +5,7 @@ import { OrdersScreen } from './OrdersScreen';
 
 const mockUseQuery = jest.fn();
 const mockNavigate = jest.fn();
-const mockPlayOrderRingtone = jest.fn();
+const mockTriggerOrderAlert = jest.fn();
 let mockAppStateCurrentState: 'active' | 'background' | 'inactive' | null = 'active';
 const mockAppStateRemove = jest.fn();
 let mockAppStateChangeListener:
@@ -46,7 +46,7 @@ jest.mock('../lib/convexApi', () => ({
 }));
 
 jest.mock('../lib/ringtone', () => ({
-  playOrderRingtone: (...args: unknown[]) => mockPlayOrderRingtone(...args),
+  triggerOrderAlert: (...args: unknown[]) => mockTriggerOrderAlert(...args),
 }));
 
 function createOrder(overrides: Partial<StaffOrder>): StaffOrder {
@@ -67,7 +67,7 @@ describe('OrdersScreen', () => {
   beforeEach(() => {
     mockUseQuery.mockReset();
     mockNavigate.mockReset();
-    mockPlayOrderRingtone.mockReset();
+    mockTriggerOrderAlert.mockReset();
     mockAppStateCurrentState = 'active';
     mockAppStateRemove.mockReset();
     mockAppStateChangeListener = undefined;
@@ -142,7 +142,7 @@ describe('OrdersScreen', () => {
 
     rerender(<OrdersScreen />);
 
-    expect(mockPlayOrderRingtone).not.toHaveBeenCalled();
+    expect(mockTriggerOrderAlert).not.toHaveBeenCalled();
   });
 
   it('stays silent for later updates while the app is backgrounded', () => {
@@ -160,7 +160,7 @@ describe('OrdersScreen', () => {
 
     rerender(<OrdersScreen />);
 
-    expect(mockPlayOrderRingtone).not.toHaveBeenCalled();
+    expect(mockTriggerOrderAlert).not.toHaveBeenCalled();
   });
 
   it('does not ring for orders that arrived while backgrounded after returning to foreground', () => {
@@ -179,7 +179,7 @@ describe('OrdersScreen', () => {
       createOrder({ _id: 'order-2', customerName: 'Bea', status: 'pending' }),
     ];
     rerender(<OrdersScreen />);
-    expect(mockPlayOrderRingtone).not.toHaveBeenCalled();
+    expect(mockTriggerOrderAlert).not.toHaveBeenCalled();
 
     act(() => {
       mockAppStateChangeListener?.('active');
@@ -189,7 +189,7 @@ describe('OrdersScreen', () => {
       createOrder({ _id: 'order-2', customerName: 'Bea', status: 'pending' }),
     ];
     rerender(<OrdersScreen />);
-    expect(mockPlayOrderRingtone).not.toHaveBeenCalled();
+    expect(mockTriggerOrderAlert).not.toHaveBeenCalled();
 
     currentOrders = [
       createOrder({ _id: 'order-1', customerName: 'Ari', status: 'pending' }),
@@ -197,7 +197,7 @@ describe('OrdersScreen', () => {
       createOrder({ _id: 'order-3', customerName: 'Cole', status: 'pending' }),
     ];
     rerender(<OrdersScreen />);
-    expect(mockPlayOrderRingtone).toHaveBeenCalledTimes(1);
+    expect(mockTriggerOrderAlert).toHaveBeenCalledTimes(1);
   });
 
   it('plays a ringtone when one new order appears after the initial load', () => {
@@ -214,7 +214,7 @@ describe('OrdersScreen', () => {
 
     rerender(<OrdersScreen />);
 
-    expect(mockPlayOrderRingtone).toHaveBeenCalledTimes(1);
+    expect(mockTriggerOrderAlert).toHaveBeenCalledTimes(1);
   });
 
   it('plays one ringtone per new order when multiple orders appear together', () => {
@@ -232,7 +232,7 @@ describe('OrdersScreen', () => {
 
     rerender(<OrdersScreen />);
 
-    expect(mockPlayOrderRingtone).toHaveBeenCalledTimes(2);
+    expect(mockTriggerOrderAlert).toHaveBeenCalledTimes(2);
   });
 
   it('navigates to order detail with order id when a row is pressed', () => {
