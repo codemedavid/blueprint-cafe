@@ -271,6 +271,8 @@ describe('triggerOrderAlert', () => {
     const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
     const setNotificationHandler = jest.fn();
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
     const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
     const scheduleNotificationAsync = jest.fn().mockRejectedValueOnce(new Error('failed to schedule'));
     const vibrate = jest.fn();
@@ -282,6 +284,8 @@ describe('triggerOrderAlert', () => {
     }));
     jest.doMock('expo-notifications', () => ({
       AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
       setNotificationHandler,
       setNotificationChannelAsync,
       scheduleNotificationAsync,
@@ -302,8 +306,11 @@ describe('triggerOrderAlert', () => {
         body: 'Open staff orders to review it.',
         sound: null,
       },
-      trigger: null,
+      trigger: {
+        channelId: 'staff-order-alerts',
+      },
     });
+    expect(requestPermissionsAsync).not.toHaveBeenCalled();
     expect(seekTo).toHaveBeenCalledWith(0);
     expect(play).toHaveBeenCalledTimes(1);
   });
@@ -312,6 +319,8 @@ describe('triggerOrderAlert', () => {
     const seekTo = jest.fn().mockResolvedValue(undefined);
     const play = jest.fn();
     const setNotificationHandler = jest.fn();
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
     const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
     const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-id');
     const vibrate = jest.fn();
@@ -331,6 +340,8 @@ describe('triggerOrderAlert', () => {
     }));
     jest.doMock('expo-notifications', () => ({
       AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
       setNotificationHandler,
       setNotificationChannelAsync,
       scheduleNotificationAsync,
@@ -346,6 +357,8 @@ describe('triggerOrderAlert', () => {
     await triggerOrderAlert();
 
     expect(setNotificationHandler).toHaveBeenCalledTimes(1);
+    expect(getPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(requestPermissionsAsync).not.toHaveBeenCalled();
     expect(setNotificationChannelAsync).toHaveBeenCalledTimes(1);
     expect(scheduleNotificationAsync).toHaveBeenCalledTimes(2);
     expect(play).toHaveBeenCalledTimes(2);
@@ -367,7 +380,9 @@ describe('triggerOrderAlert', () => {
     const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
     const setNotificationHandler = jest.fn();
-    const setNotificationChannelAsync = jest.fn().mockRejectedValueOnce(new Error('channel failed'));
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'denied' });
+    const requestPermissionsAsync = jest.fn().mockResolvedValue({ status: 'denied' });
+    const setNotificationChannelAsync = jest.fn();
     const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
     const vibrate = jest.fn();
 
@@ -378,6 +393,8 @@ describe('triggerOrderAlert', () => {
     }));
     jest.doMock('expo-notifications', () => ({
       AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
       setNotificationHandler,
       setNotificationChannelAsync,
       scheduleNotificationAsync,
@@ -392,7 +409,9 @@ describe('triggerOrderAlert', () => {
     await expect(triggerOrderAlert()).resolves.toBeUndefined();
 
     expect(setNotificationHandler).toHaveBeenCalledTimes(1);
-    expect(setNotificationChannelAsync).toHaveBeenCalledTimes(1);
+    expect(getPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(requestPermissionsAsync).toHaveBeenCalledTimes(1);
+    expect(setNotificationChannelAsync).not.toHaveBeenCalled();
     expect(vibrate).toHaveBeenCalledWith(500);
     expect(scheduleNotificationAsync).not.toHaveBeenCalled();
     expect(seekTo).toHaveBeenCalledWith(0);
@@ -417,6 +436,8 @@ describe('triggerOrderAlert', () => {
       .mockRejectedValueOnce(new Error('audio setup failed'))
       .mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
     const setNotificationHandler = jest.fn();
     const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
     const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
@@ -429,6 +450,8 @@ describe('triggerOrderAlert', () => {
     }));
     jest.doMock('expo-notifications', () => ({
       AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
       setNotificationHandler,
       setNotificationChannelAsync,
       scheduleNotificationAsync,
@@ -456,6 +479,11 @@ describe('triggerOrderAlert', () => {
     const seekTo = jest.fn().mockResolvedValue(undefined);
     const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
+    const setNotificationHandler = jest.fn();
+    const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
+    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
     const createAudioPlayer = jest.fn(() => ({
       play,
       seekTo,
@@ -472,6 +500,14 @@ describe('triggerOrderAlert', () => {
       createAudioPlayer,
       setAudioModeAsync,
       setIsAudioActiveAsync,
+    }));
+    jest.doMock('expo-notifications', () => ({
+      AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
+      setNotificationHandler,
+      setNotificationChannelAsync,
+      scheduleNotificationAsync,
     }));
     jest.unmock('../lib/ringtone');
 
@@ -509,6 +545,11 @@ describe('triggerOrderAlert', () => {
     }));
     const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
+    const setNotificationHandler = jest.fn();
+    const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
+    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(((callback) => {
       callback();
       return 0 as ReturnType<typeof setTimeout>;
@@ -524,6 +565,14 @@ describe('triggerOrderAlert', () => {
           addListener,
           remove: jest.fn(),
         }),
+      }));
+      jest.doMock('expo-notifications', () => ({
+        AndroidImportance: { MAX: 'max' },
+        getPermissionsAsync,
+        requestPermissionsAsync,
+        setNotificationHandler,
+        setNotificationChannelAsync,
+        scheduleNotificationAsync,
       }));
       jest.unmock('../lib/ringtone');
 
@@ -550,6 +599,11 @@ describe('triggerOrderAlert', () => {
   it('reuses a single player across multiple ringtone plays', async () => {
     const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const getPermissionsAsync = jest.fn().mockResolvedValue({ status: 'granted' });
+    const requestPermissionsAsync = jest.fn();
+    const setNotificationHandler = jest.fn();
+    const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
+    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
     const seekTo = jest.fn().mockResolvedValue(undefined);
     const play = jest.fn();
     const remove = jest.fn();
@@ -567,6 +621,14 @@ describe('triggerOrderAlert', () => {
       createAudioPlayer,
       setAudioModeAsync,
       setIsAudioActiveAsync,
+    }));
+    jest.doMock('expo-notifications', () => ({
+      AndroidImportance: { MAX: 'max' },
+      getPermissionsAsync,
+      requestPermissionsAsync,
+      setNotificationHandler,
+      setNotificationChannelAsync,
+      scheduleNotificationAsync,
     }));
     jest.unmock('../lib/ringtone');
 

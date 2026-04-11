@@ -57,16 +57,31 @@ async function ensureNotificationReady(): Promise<void> {
         handleNotification: async () => ({
           shouldShowBanner: true,
           shouldShowList: true,
-          shouldPlaySound: false,
+          shouldPlaySound: true,
           shouldSetBadge: false,
         }),
       });
+
+      const existingPermissions = await Notifications.getPermissionsAsync();
+      let finalStatus = existingPermissions.status;
+
+      if (finalStatus !== 'granted') {
+        const requestedPermissions = await Notifications.requestPermissionsAsync();
+        finalStatus = requestedPermissions.status;
+      }
+
+      if (finalStatus !== 'granted') {
+        throw new Error('Notification permission not granted');
+      }
 
       await Notifications.setNotificationChannelAsync(
         orderAlertNotificationChannelId,
         {
           name: 'Staff order alerts',
           importance: Notifications.AndroidImportance.MAX,
+          enableVibrate: true,
+          vibrationPattern: [0, 250, 250, 250],
+          showBadge: false,
         },
       );
     })().catch((error) => {
@@ -85,7 +100,9 @@ async function scheduleOrderNotification(): Promise<void> {
       body: orderAlertNotificationBody,
       sound: null as never,
     },
-    trigger: null,
+    trigger: {
+      channelId: orderAlertNotificationChannelId,
+    },
   });
 }
 
