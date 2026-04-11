@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Blueprint Cafe",
+    "slug": "blueprint-cafe-staff",
+    "scheme": "blueprintcafestaff",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.blueprintcafestaff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.blueprintcafestaff"
+    },
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6cb14020-d2fa-4709-a3c8-56ef83cf00b4"
+      }
+    },
+    "plugins": [
+      "expo-audio",
+      "expo-notifications"
+    ]
+  }
+}
