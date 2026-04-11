@@ -53,20 +53,21 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
   },
   tab: {
-    minWidth: '30%',
-    borderRadius: theme.radius.pill,
+    minWidth: '31%',
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    gap: 4,
   },
   tabSelected: {
     borderColor: theme.colors.primary,
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   labelSelected: {
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   },
   count: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 });

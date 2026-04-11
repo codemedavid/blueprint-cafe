@@ -48,28 +48,30 @@ export function OrdersScreen() {
         onSelect={setSelectedStatus}
       />
 
-      {orders === undefined ? <Text style={styles.statusText}>Loading orders...</Text> : null}
+      <View style={styles.listSection}>
+        {orders === undefined ? <Text style={styles.statusText}>Loading orders...</Text> : null}
 
-      {orders !== undefined ? (
-        <FlatList
-          contentContainerStyle={styles.list}
-          data={filteredOrders}
-          keyExtractor={(order) => order._id}
-          renderItem={({ item }) => (
-            <OrderRow
-              order={item}
-              onPress={(orderId) =>
-                navigation.navigate('OrderDetail', {
-                  orderId,
-                })
-              }
-            />
-          )}
-          ListEmptyComponent={
-            <Text style={styles.statusText}>No {selectedStatus} orders right now.</Text>
-          }
-        />
-      ) : null}
+        {orders !== undefined ? (
+          <FlatList
+            contentContainerStyle={styles.list}
+            data={filteredOrders}
+            keyExtractor={(order) => order._id}
+            renderItem={({ item }) => (
+              <OrderRow
+                order={item}
+                onPress={(orderId) =>
+                  navigation.navigate('OrderDetail', {
+                    orderId,
+                  })
+                }
+              />
+            )}
+            ListEmptyComponent={
+              <Text style={styles.statusText}>No {selectedStatus} orders right now.</Text>
+            }
+          />
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -79,34 +81,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
     padding: theme.spacing.md,
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   headerBlock: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   eyebrow: {
     color: theme.colors.primary,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
   },
   subtitle: {
     color: theme.colors.muted,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  listSection: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.sm,
   },
   list: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.lg,
+    gap: theme.spacing.xs,
+    paddingBottom: theme.spacing.sm,
   },
   statusText: {
     color: theme.colors.muted,
-    fontSize: 14,
+    fontSize: 12,
   },
 });

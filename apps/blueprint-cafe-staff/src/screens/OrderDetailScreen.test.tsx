@@ -115,11 +115,11 @@ describe('OrderDetailScreen', () => {
     });
   });
 
-  it('does not allow an immediate second tap after a successful advance while status is still stale', async () => {
+  it('applies optimistic status after advance and uses it for the next action while query data is stale', async () => {
     const advanceOrderStatus = jest
       .fn()
       .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error('Order status changed'));
+      .mockResolvedValueOnce(undefined);
     mockUseQuery.mockReturnValue(
       createOrder({
         _id: 'order-123',
@@ -135,10 +135,22 @@ describe('OrderDetailScreen', () => {
     await waitFor(() => {
       expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByText('Updating status...')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Start Preparing' })).toBeNull();
-    expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText('Unable to update order. Please try again.')).toBeNull();
+    expect(screen.queryByText('Updating status...')).toBeNull();
+    expect(screen.getByText('Preparing')).toBeTruthy();
+    const markReadyButton = screen.getByRole('button', { name: 'Mark Ready' });
+    await waitFor(() => {
+      expect(markReadyButton).not.toBeDisabled();
+    });
+
+    fireEvent.press(markReadyButton);
+
+    await waitFor(() => {
+      expect(advanceOrderStatus).toHaveBeenCalledTimes(2);
+    });
+    expect(advanceOrderStatus).toHaveBeenNthCalledWith(2, {
+      orderId: 'order-123',
+      currentStatus: 'preparing',
+    });
   });
 
   it('shows Mark Ready as the primary action for preparing orders', () => {
@@ -215,11 +227,8 @@ describe('OrderDetailScreen', () => {
     });
   });
 
-  it('does not allow an immediate second cancel tap while status is still stale', async () => {
-    const cancelOrder = jest
-      .fn()
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error('Order already canceled'));
+  it('applies optimistic canceled state after cancel while query data is stale', async () => {
+    const cancelOrder = jest.fn().mockResolvedValue(undefined);
     mockUseQuery.mockReturnValue(
       createOrder({
         _id: 'order-123',
@@ -237,13 +246,13 @@ describe('OrderDetailScreen', () => {
     await waitFor(() => {
       expect(cancelOrder).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByText('Updating status...')).toBeTruthy();
+    expect(screen.queryByText('Updating status...')).toBeNull();
+    expect(screen.getByText('Canceled')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Cancel Order' })).toBeNull();
-    expect(cancelOrder).toHaveBeenCalledTimes(1);
     expect(screen.queryByText('Unable to cancel order. Please try again.')).toBeNull();
   });
 
-  it('hides Cancel Order while a successful advance is awaiting query sync', async () => {
+  it('hides Cancel Order immediately after a successful advance based on optimistic status', async () => {
     const advanceOrderStatus = jest.fn().mockResolvedValue(undefined);
     const cancelOrder = jest.fn();
     mockUseQuery.mockReturnValue(
@@ -263,7 +272,8 @@ describe('OrderDetailScreen', () => {
     await waitFor(() => {
       expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
     });
-    expect(screen.getByText('Updating status...')).toBeTruthy();
+    expect(screen.queryByText('Updating status...')).toBeNull();
+    expect(screen.getByText('Ready')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Cancel Order' })).toBeNull();
     expect(cancelOrder).not.toHaveBeenCalled();
   });

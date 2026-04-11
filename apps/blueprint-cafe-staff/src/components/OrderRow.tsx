@@ -42,12 +42,12 @@ export function OrderRow<OrderId extends string>({
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 72,
+    minHeight: 60,
     borderRadius: theme.radius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
     gap: theme.spacing.xs,
   },
@@ -70,21 +70,21 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
   },
   dot: {
     color: theme.colors.muted,
-    fontSize: 12,
+    fontSize: 11,
   },
   total: {
     flexShrink: 0,
     color: theme.colors.text,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

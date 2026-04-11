@@ -62,6 +62,12 @@ export const NEXT_ORDER_ACTION_LABELS: Partial<Record<StaffOrderStatus, string>>
   ready: 'Complete Order',
 };
 
+export const NEXT_ORDER_STATUS: Partial<Record<StaffOrderStatus, StaffOrderStatus>> = {
+  pending: 'preparing',
+  preparing: 'ready',
+  ready: 'completed',
+};
+
 export function canCancelOrder(status: StaffOrderStatus) {
   return status === 'pending' || status === 'preparing';
 }

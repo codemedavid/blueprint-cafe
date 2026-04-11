@@ -9,6 +9,7 @@ import type { RootStackParamList } from '../types/navigation';
 import {
   canCancelOrder,
   formatOrderCurrency,
+  NEXT_ORDER_STATUS,
   ORDER_SERVICE_TYPE_LABELS,
   ORDER_STATUS_LABELS,
   NEXT_ORDER_ACTION_LABELS,
@@ -22,34 +23,30 @@ export function OrderDetailScreen() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
-  const [pendingSyncStatus, setPendingSyncStatus] = useState<StaffOrderStatus | null>(null);
+  const [optimisticStatus, setOptimisticStatus] = useState<StaffOrderStatus | null>(null);
 
   const order = useQuery(api.orders.getOrderById, {
     orderId: route.params.orderId,
   });
 
-  const isAwaitingStatusSync =
-    order !== undefined &&
-    order !== null &&
-    pendingSyncStatus !== null &&
-    order.status === pendingSyncStatus;
-
-  const actionLabel =
-    order && !isAwaitingStatusSync ? NEXT_ORDER_ACTION_LABELS[order.status] ?? null : null;
-  const showCancelAction = order && !isAwaitingStatusSync ? canCancelOrder(order.status) : false;
+  const effectiveStatus: StaffOrderStatus | null = order
+    ? (optimisticStatus ?? order.status)
+    : null;
+  const actionLabel = effectiveStatus ? NEXT_ORDER_ACTION_LABELS[effectiveStatus] ?? null : null;
+  const showCancelAction = effectiveStatus ? canCancelOrder(effectiveStatus) : false;
 
   useEffect(() => {
-    if (order === undefined || order === null || pendingSyncStatus === null) {
+    if (order === undefined || order === null || optimisticStatus === null) {
       return;
     }
 
-    if (order.status !== pendingSyncStatus) {
-      setPendingSyncStatus(null);
+    if (order.status === optimisticStatus) {
+      setOptimisticStatus(null);
     }
-  }, [order, pendingSyncStatus]);
+  }, [order, optimisticStatus]);
 
   const handleAdvanceStatus = async () => {
-    if (!order || !actionLabel || isUpdating || isAwaitingStatusSync) {
+    if (!order || !effectiveStatus || !actionLabel || isUpdating || isCanceling) {
       return;
     }
 
@@ -59,19 +56,21 @@ export function OrderDetailScreen() {
     try {
       await advanceOrderStatus({
         orderId: order._id,
-        currentStatus: order.status,
+        currentStatus: effectiveStatus,
       });
-      setPendingSyncStatus(order.status);
+      const nextStatus = NEXT_ORDER_STATUS[effectiveStatus];
+      if (nextStatus) {
+        setOptimisticStatus(nextStatus);
+      }
     } catch (error) {
       setStatusError('Unable to update order. Please try again.');
-      setPendingSyncStatus(null);
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleCancelOrder = async () => {
-    if (!order || isCanceling || isUpdating || isAwaitingStatusSync) {
+    if (!order || isCanceling || isUpdating) {
       return;
     }
 
@@ -80,10 +79,9 @@ export function OrderDetailScreen() {
 
     try {
       await cancelOrder({ orderId: order._id });
-      setPendingSyncStatus(order.status);
+      setOptimisticStatus('canceled');
     } catch {
       setStatusError('Unable to cancel order. Please try again.');
-      setPendingSyncStatus(null);
     } finally {
       setIsCanceling(false);
     }
@@ -109,7 +107,9 @@ export function OrderDetailScreen() {
             <Text style={styles.sectionTitle}>Order Summary</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.label}>Status</Text>
-              <Text style={styles.value}>{ORDER_STATUS_LABELS[order.status]}</Text>
+              <Text style={styles.value}>
+                {ORDER_STATUS_LABELS[effectiveStatus ?? order.status]}
+              </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.label}>Service</Text>
@@ -145,20 +145,18 @@ export function OrderDetailScreen() {
 
           <View style={styles.actionCard}>
             {statusError ? <Text style={styles.error}>{statusError}</Text> : null}
-            {isUpdating || isAwaitingStatusSync ? (
-              <Text style={styles.meta}>Updating status...</Text>
-            ) : null}
+            {isUpdating || isCanceling ? <Text style={styles.meta}>Updating status...</Text> : null}
 
             {actionLabel ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={actionLabel}
-                disabled={isUpdating || isCanceling || isAwaitingStatusSync}
+                disabled={isUpdating || isCanceling}
                 onPress={handleAdvanceStatus}
                 style={({ pressed }) => [
                   styles.primaryAction,
-                  pressed && !isUpdating && !isCanceling && !isAwaitingStatusSync && styles.buttonPressed,
-                  (isUpdating || isCanceling || isAwaitingStatusSync) && styles.buttonDisabled,
+                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
+                  (isUpdating || isCanceling) && styles.buttonDisabled,
                 ]}
               >
                 <Text style={styles.primaryActionText}>{actionLabel}</Text>
@@ -169,12 +167,12 @@ export function OrderDetailScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Cancel Order"
-                disabled={isUpdating || isCanceling || isAwaitingStatusSync}
+                disabled={isUpdating || isCanceling}
                 onPress={handleCancelOrder}
                 style={({ pressed }) => [
                   styles.destructiveAction,
-                  pressed && !isUpdating && !isCanceling && !isAwaitingStatusSync && styles.buttonPressed,
-                  (isUpdating || isCanceling || isAwaitingStatusSync) && styles.buttonDisabled,
+                  pressed && !isUpdating && !isCanceling && styles.buttonPressed,
+                  (isUpdating || isCanceling) && styles.buttonDisabled,
                 ]}
               >
                 <Text style={styles.destructiveActionText}>Cancel Order</Text>
@@ -193,48 +191,48 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   content: {
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     gap: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xl,
   },
   eyebrow: {
     color: theme.colors.primary,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.text,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
   },
   heroCard: {
     backgroundColor: theme.colors.surfaceElevated,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   sectionCard: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
     gap: theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   actionCard: {
     backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
     gap: theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   customerName: {
     color: theme.colors.text,
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
   },
   summaryRow: {
@@ -245,47 +243,47 @@ const styles = StyleSheet.create({
   },
   label: {
     color: theme.colors.muted,
-    fontSize: 13,
+    fontSize: 12,
   },
   value: {
     color: theme.colors.text,
-    fontSize: 15,
+    fontSize: 13,
   },
   sectionTitle: {
     color: theme.colors.accent,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   },
   itemsList: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   meta: {
     color: theme.colors.muted,
-    fontSize: 14,
+    fontSize: 12,
   },
   error: {
     color: theme.colors.danger,
-    fontSize: 14,
+    fontSize: 12,
   },
   primaryAction: {
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.md,
-    minHeight: 48,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   destructiveAction: {
     backgroundColor: theme.colors.dangerSoft,
     borderRadius: theme.radius.md,
-    minHeight: 48,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   buttonPressed: {
     opacity: 0.85,
@@ -295,12 +293,12 @@ const styles = StyleSheet.create({
   },
   primaryActionText: {
     color: theme.colors.surfaceElevated,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
   },
   destructiveActionText: {
     color: theme.colors.danger,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
   },
 });
