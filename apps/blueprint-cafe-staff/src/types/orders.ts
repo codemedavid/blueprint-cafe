@@ -52,8 +52,19 @@ export const ORDER_SERVICE_TYPE_LABELS: Record<StaffOrder['serviceType'], string
   delivery: 'Delivery',
 };
 
+const pesoCurrencyFormatter = new Intl.NumberFormat('en-PH', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const wholePesoFormatter = new Intl.NumberFormat('en-PH', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 export function formatOrderCurrency(total: number) {
-  return `₱${Math.round(total).toLocaleString('en-PH')}`;
+  const hasCentavos = Math.abs(total % 1) > Number.EPSILON;
+  return `₱${(hasCentavos ? pesoCurrencyFormatter : wholePesoFormatter).format(total)}`;
 }
 
 export const NEXT_ORDER_ACTION_LABELS: Partial<Record<StaffOrderStatus, string>> = {

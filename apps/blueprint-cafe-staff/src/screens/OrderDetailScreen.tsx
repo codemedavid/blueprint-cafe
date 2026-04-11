@@ -16,6 +16,11 @@ import {
   type StaffOrderStatus,
 } from '../types/orders';
 
+type OptimisticStatusState = {
+  status: StaffOrderStatus;
+  serverStatusAtUpdate: StaffOrderStatus;
+};
+
 export function OrderDetailScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'OrderDetail'>>();
   const advanceOrderStatus = useMutation(api.orders.advanceOrderStatus);
@@ -23,27 +28,30 @@ export function OrderDetailScreen() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
-  const [optimisticStatus, setOptimisticStatus] = useState<StaffOrderStatus | null>(null);
+  const [optimisticState, setOptimisticState] = useState<OptimisticStatusState | null>(null);
 
   const order = useQuery(api.orders.getOrderById, {
     orderId: route.params.orderId,
   });
 
   const effectiveStatus: StaffOrderStatus | null = order
-    ? (optimisticStatus ?? order.status)
+    ? (optimisticState?.status ?? order.status)
     : null;
   const actionLabel = effectiveStatus ? NEXT_ORDER_ACTION_LABELS[effectiveStatus] ?? null : null;
   const showCancelAction = effectiveStatus ? canCancelOrder(effectiveStatus) : false;
 
   useEffect(() => {
-    if (order === undefined || order === null || optimisticStatus === null) {
+    if (order === undefined || order === null || optimisticState === null) {
       return;
     }
 
-    if (order.status === optimisticStatus) {
-      setOptimisticStatus(null);
+    if (
+      order.status === optimisticState.status ||
+      order.status !== optimisticState.serverStatusAtUpdate
+    ) {
+      setOptimisticState(null);
     }
-  }, [order, optimisticStatus]);
+  }, [order, optimisticState]);
 
   const handleAdvanceStatus = async () => {
     if (!order || !effectiveStatus || !actionLabel || isUpdating || isCanceling) {
@@ -60,7 +68,10 @@ export function OrderDetailScreen() {
       });
       const nextStatus = NEXT_ORDER_STATUS[effectiveStatus];
       if (nextStatus) {
-        setOptimisticStatus(nextStatus);
+        setOptimisticState({
+          status: nextStatus,
+          serverStatusAtUpdate: order.status,
+        });
       }
     } catch (error) {
       setStatusError('Unable to update order. Please try again.');
@@ -79,7 +90,10 @@ export function OrderDetailScreen() {
 
     try {
       await cancelOrder({ orderId: order._id });
-      setOptimisticStatus('canceled');
+      setOptimisticState({
+        status: 'canceled',
+        serverStatusAtUpdate: order.status,
+      });
     } catch {
       setStatusError('Unable to cancel order. Please try again.');
     } finally {

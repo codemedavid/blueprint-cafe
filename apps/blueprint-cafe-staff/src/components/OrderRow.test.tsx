@@ -57,4 +57,21 @@ describe('OrderRow', () => {
     expect(screen.getByText(order.customerName)).toHaveProp('numberOfLines', 1);
     expect(screen.getByText('₱120')).toBeTruthy();
   });
+
+  it('renders centavo totals when needed', () => {
+    const order: StaffOrder = {
+      _id: 'order-3',
+      customerName: 'Centavo Check',
+      serviceType: 'delivery',
+      paymentMethodName: 'Card',
+      items: [{ lineItemId: 'item-4', name: 'Cookie', quantity: 3 }],
+      total: 494.5,
+      status: 'pending',
+      submittedAt: 1710000000000,
+    };
+
+    render(<OrderRow order={order} onPress={jest.fn()} />);
+
+    expect(screen.getByText('₱494.50')).toBeTruthy();
+  });
 });

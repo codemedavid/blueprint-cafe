@@ -51,7 +51,7 @@ describe('OrderDetailScreen', () => {
     });
   });
 
-  it('renders notes and line items for the selected order', () => {
+  it('renders notes, line items, and centavo totals for the selected order', () => {
     mockUseQuery.mockReturnValue(
       createOrder({
         _id: 'order-123',
@@ -59,7 +59,7 @@ describe('OrderDetailScreen', () => {
         status: 'preparing',
         serviceType: 'pickup',
         paymentMethodName: 'GCash',
-        total: 412,
+        total: 412.5,
         notes: 'No ice',
         items: [
           { lineItemId: 'item-1', name: 'Iced Latte', quantity: 2 },
@@ -75,7 +75,7 @@ describe('OrderDetailScreen', () => {
     expect(screen.getByText('Preparing')).toBeTruthy();
     expect(screen.getByText('Pickup')).toBeTruthy();
     expect(screen.getByText('GCash')).toBeTruthy();
-    expect(screen.getByText('₱412')).toBeTruthy();
+    expect(screen.getByText('₱412.50')).toBeTruthy();
     expect(screen.getByText('No ice')).toBeTruthy();
     expect(screen.getByText('2x Iced Latte')).toBeTruthy();
     expect(screen.getByText('1x Brownie')).toBeTruthy();
@@ -151,6 +151,40 @@ describe('OrderDetailScreen', () => {
       orderId: 'order-123',
       currentStatus: 'preparing',
     });
+  });
+
+  it('replaces stale optimistic status when a newer different server status arrives', async () => {
+    const advanceOrderStatus = jest.fn().mockResolvedValue(undefined);
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'pending',
+      }),
+    );
+    mockUseMutation.mockReturnValue(advanceOrderStatus);
+
+    const { rerender } = render(<OrderDetailScreen />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Start Preparing' }));
+
+    await waitFor(() => {
+      expect(advanceOrderStatus).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText('Preparing')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Mark Ready' })).toBeTruthy();
+
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        status: 'ready',
+      }),
+    );
+    rerender(<OrderDetailScreen />);
+
+    expect(screen.getByText('Ready')).toBeTruthy();
+    expect(screen.queryByText('Preparing')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Complete Order' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Mark Ready' })).toBeNull();
   });
 
   it('shows Mark Ready as the primary action for preparing orders', () => {
