@@ -272,7 +272,7 @@ describe('triggerOrderAlert', () => {
     const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
     const setNotificationHandler = jest.fn();
     const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
-    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
+    const scheduleNotificationAsync = jest.fn().mockRejectedValueOnce(new Error('failed to schedule'));
     const vibrate = jest.fn();
 
     jest.doMock('expo-audio', () => ({
@@ -286,19 +286,14 @@ describe('triggerOrderAlert', () => {
       setNotificationChannelAsync,
       scheduleNotificationAsync,
     }));
-    jest.doMock('react-native', () => {
-      const actual = jest.requireActual('react-native');
-      return {
-        ...actual,
-        Platform: { ...actual.Platform, OS: 'android' },
-        Vibration: { vibrate },
-      };
-    });
+    jest.doMock('react-native', () => ({
+      Vibration: { vibrate },
+    }));
     jest.unmock('../lib/ringtone');
 
     const { triggerOrderAlert } = require('../lib/ringtone') as typeof import('../lib/ringtone');
 
-    await triggerOrderAlert();
+    await expect(triggerOrderAlert()).resolves.toBeUndefined();
 
     expect(vibrate).toHaveBeenCalledWith(500);
     expect(scheduleNotificationAsync).toHaveBeenCalledWith({
@@ -319,6 +314,7 @@ describe('triggerOrderAlert', () => {
     const setNotificationHandler = jest.fn();
     const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
     const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-id');
+    const vibrate = jest.fn();
 
     jest.doMock('expo-audio', () => ({
       createAudioPlayer: () => ({
@@ -339,6 +335,9 @@ describe('triggerOrderAlert', () => {
       setNotificationChannelAsync,
       scheduleNotificationAsync,
     }));
+    jest.doMock('react-native', () => ({
+      Vibration: { vibrate },
+    }));
     jest.unmock('../lib/ringtone');
 
     const { triggerOrderAlert } = require('../lib/ringtone') as typeof import('../lib/ringtone');
@@ -350,6 +349,104 @@ describe('triggerOrderAlert', () => {
     expect(setNotificationChannelAsync).toHaveBeenCalledTimes(1);
     expect(scheduleNotificationAsync).toHaveBeenCalledTimes(2);
     expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it('continues with vibration and ringtone when notification setup fails', async () => {
+    const seekTo = jest.fn().mockResolvedValue(undefined);
+    const play = jest.fn();
+    const addListener = jest.fn((_, listener: (status: { didJustFinish: boolean }) => void) => {
+      queueMicrotask(() => listener({ didJustFinish: true }));
+      return { remove: jest.fn() };
+    });
+    const createAudioPlayer = jest.fn(() => ({
+      seekTo,
+      play,
+      addListener,
+      remove: jest.fn(),
+    }));
+    const setAudioModeAsync = jest.fn().mockResolvedValue(undefined);
+    const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const setNotificationHandler = jest.fn();
+    const setNotificationChannelAsync = jest.fn().mockRejectedValueOnce(new Error('channel failed'));
+    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
+    const vibrate = jest.fn();
+
+    jest.doMock('expo-audio', () => ({
+      createAudioPlayer,
+      setAudioModeAsync,
+      setIsAudioActiveAsync,
+    }));
+    jest.doMock('expo-notifications', () => ({
+      AndroidImportance: { MAX: 'max' },
+      setNotificationHandler,
+      setNotificationChannelAsync,
+      scheduleNotificationAsync,
+    }));
+    jest.doMock('react-native', () => ({
+      Vibration: { vibrate },
+    }));
+    jest.unmock('../lib/ringtone');
+
+    const { triggerOrderAlert } = require('../lib/ringtone') as typeof import('../lib/ringtone');
+
+    await expect(triggerOrderAlert()).resolves.toBeUndefined();
+
+    expect(setNotificationHandler).toHaveBeenCalledTimes(1);
+    expect(setNotificationChannelAsync).toHaveBeenCalledTimes(1);
+    expect(vibrate).toHaveBeenCalledWith(500);
+    expect(scheduleNotificationAsync).not.toHaveBeenCalled();
+    expect(seekTo).toHaveBeenCalledWith(0);
+    expect(play).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries audio setup after a transient failure', async () => {
+    const play = jest.fn();
+    const seekTo = jest.fn().mockResolvedValue(undefined);
+    const addListener = jest.fn((_, listener: (status: { didJustFinish: boolean }) => void) => {
+      queueMicrotask(() => listener({ didJustFinish: true }));
+      return { remove: jest.fn() };
+    });
+    const createAudioPlayer = jest.fn(() => ({
+      play,
+      seekTo,
+      addListener,
+      remove: jest.fn(),
+    }));
+    const setAudioModeAsync = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('audio setup failed'))
+      .mockResolvedValue(undefined);
+    const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined);
+    const setNotificationHandler = jest.fn();
+    const setNotificationChannelAsync = jest.fn().mockResolvedValue(undefined);
+    const scheduleNotificationAsync = jest.fn().mockResolvedValue('notif-1');
+    const vibrate = jest.fn();
+
+    jest.doMock('expo-audio', () => ({
+      createAudioPlayer,
+      setAudioModeAsync,
+      setIsAudioActiveAsync,
+    }));
+    jest.doMock('expo-notifications', () => ({
+      AndroidImportance: { MAX: 'max' },
+      setNotificationHandler,
+      setNotificationChannelAsync,
+      scheduleNotificationAsync,
+    }));
+    jest.doMock('react-native', () => ({
+      Vibration: { vibrate },
+    }));
+    jest.unmock('../lib/ringtone');
+
+    const { triggerOrderAlert } = require('../lib/ringtone') as typeof import('../lib/ringtone');
+
+    await expect(triggerOrderAlert()).rejects.toThrow('audio setup failed');
+    await expect(triggerOrderAlert()).resolves.toBeUndefined();
+
+    expect(setAudioModeAsync).toHaveBeenCalledTimes(2);
+    expect(setIsAudioActiveAsync).toHaveBeenCalledTimes(1);
+    expect(createAudioPlayer).toHaveBeenCalledTimes(1);
+    expect(play).toHaveBeenCalledTimes(1);
   });
 
   it('resolves when playback reports didJustFinish before the fallback timeout', async () => {
