@@ -26,13 +26,41 @@ jest.mock('../lib/convexApi', () => ({
   },
 }));
 
+jest.mock('react-native-safe-area-context', () => {
+  const { View } = require('react-native');
+
+  return {
+    SafeAreaView: ({
+      children,
+      testID,
+      style,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+      style?: unknown;
+    }) => (
+      <View testID={testID} style={style}>
+        {children}
+      </View>
+    ),
+  };
+});
+
 function createOrder(overrides: Partial<StaffOrder>): StaffOrder {
   return {
     _id: 'order-1',
     customerName: 'Blueprint Tester',
     serviceType: 'dine-in',
     paymentMethodName: 'Cash',
-    items: [{ lineItemId: 'item-1', name: 'Latte', quantity: 1 }],
+    items: [
+      {
+        lineItemId: 'item-1',
+        name: 'Latte',
+        quantity: 1,
+        selectedVariations: [],
+        selectedAddOns: [],
+      },
+    ],
     total: 180,
     status: 'pending',
     submittedAt: 1710000000000,
@@ -62,8 +90,20 @@ describe('OrderDetailScreen', () => {
         total: 412.5,
         notes: 'No ice',
         items: [
-          { lineItemId: 'item-1', name: 'Iced Latte', quantity: 2 },
-          { lineItemId: 'item-2', name: 'Brownie', quantity: 1 },
+          {
+            lineItemId: 'item-1',
+            name: 'Iced Latte',
+            quantity: 2,
+            selectedVariations: [],
+            selectedAddOns: [],
+          },
+          {
+            lineItemId: 'item-2',
+            name: 'Brownie',
+            quantity: 1,
+            selectedVariations: [],
+            selectedAddOns: [],
+          },
         ],
       }),
     );
@@ -71,6 +111,7 @@ describe('OrderDetailScreen', () => {
 
     render(<OrderDetailScreen />);
 
+    expect(screen.getByTestId('order-detail-safe-area')).toBeTruthy();
     expect(screen.getByText('Ari')).toBeTruthy();
     expect(screen.getByText('Preparing')).toBeTruthy();
     expect(screen.getByText('Pickup')).toBeTruthy();
@@ -79,6 +120,48 @@ describe('OrderDetailScreen', () => {
     expect(screen.getByText('No ice')).toBeTruthy();
     expect(screen.getByText('2x Iced Latte')).toBeTruthy();
     expect(screen.getByText('1x Brownie')).toBeTruthy();
+  });
+
+  it('renders selected variations and add-ons for each line item', () => {
+    mockUseQuery.mockReturnValue(
+      createOrder({
+        _id: 'order-123',
+        items: [
+          {
+            lineItemId: 'item-1',
+            name: 'Iced Latte',
+            quantity: 1,
+            selectedVariations: [
+              { id: 'large', name: 'Large', price: 20, type: 'Size' },
+              { id: 'oat', name: 'Oat Milk', price: 30, type: 'Milk' },
+            ],
+            selectedAddOns: [
+              {
+                id: 'shot',
+                name: 'Extra Shot',
+                category: 'Extras',
+                price: 30,
+                quantity: 2,
+              },
+              {
+                id: 'syrup',
+                name: 'Vanilla Syrup',
+                category: 'Extras',
+                price: 15,
+                quantity: 1,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    mockUseMutation.mockReturnValue(jest.fn());
+
+    render(<OrderDetailScreen />);
+
+    expect(screen.getByText('1x Iced Latte')).toBeTruthy();
+    expect(screen.getByText('Variations: Large, Oat Milk')).toBeTruthy();
+    expect(screen.getByText('Add-ons: Extra Shot x2, Vanilla Syrup')).toBeTruthy();
   });
 
   it('shows loading and missing-order states', () => {

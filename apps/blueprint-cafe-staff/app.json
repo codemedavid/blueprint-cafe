@@ -4,11 +4,28 @@
     "slug": "blueprint-cafe-staff",
     "scheme": "blueprintcafestaff",
     "version": "1.0.0",
+    "icon": "./assets/logo.png",
     "android": {
-      "package": "com.blueprintcafestaff"
+      "package": "com.blueprintcafestaff",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "ios": {
       "bundleIdentifier": "com.blueprintcafestaff"
+    },
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
     },
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -23,7 +40,11 @@
     },
     "plugins": [
       "expo-audio",
-      "expo-notifications"
-    ]
+      "expo-notifications",
+      "expo-asset"
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/6cb14020-d2fa-4709-a3c8-56ef83cf00b4"
+    }
   }
 }

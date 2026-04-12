@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Minus, X, ShoppingCart } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 
@@ -112,6 +113,24 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
     groups[category].push(addOn);
     return groups;
   }, {} as Record<string, AddOn[]>);
+
+  useEffect(() => {
+    if (!showCustomization || typeof document === 'undefined') {
+      return;
+    }
+
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    const previousTouchAction = body.style.touchAction;
+
+    body.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.touchAction = previousTouchAction;
+    };
+  }, [showCustomization]);
 
   return (
     <>
@@ -234,7 +253,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       </div>
 
       {/* Customization Full-Screen Sheet */}
-      {showCustomization && (() => {
+      {showCustomization && typeof document !== 'undefined' && (() => {
         // Same-category first, then popular, then rest — always fills up to 6
         const suggestedItems = allItems
           .filter(i => i.id !== item.id && i.available !== false)
@@ -246,14 +265,22 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           })
           .slice(0, 6);
 
-        return (
+        return createPortal(
         <div className="fixed inset-0 z-50 flex flex-col">
+          <button
+            type="button"
+            aria-label="Close customization"
+            className="absolute inset-0"
+            onClick={() => setShowCustomization(false)}
+            style={{ background: 'rgba(15, 23, 42, 0.18)' }}
+          />
           {/* Sheet — full screen, slides up */}
           <div
             className="relative w-full h-full flex flex-col"
             style={{
               background: '#FAFAF8',
               animation: 'ccSlideUp 0.42s cubic-bezier(0.32, 0.72, 0, 1)',
+              overscrollBehavior: 'contain',
             }}
           >
             {/* Hero image */}
@@ -309,7 +336,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             </div>
 
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-5 pt-3 pb-32">
+            <div
+              className="flex-1 overflow-y-auto px-5 pt-3 pb-32"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
 
               {/* Variations — one section per type */}
               {variationGroups.map(([type, vars]) => (
@@ -605,7 +635,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               to { transform: translateY(0); }
             }
           `}</style>
-        </div>
+        </div>,
+        document.body
         );
       })()}
     </>

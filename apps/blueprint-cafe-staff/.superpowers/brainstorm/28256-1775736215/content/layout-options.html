@@ -1,0 +1,89 @@
+<h2>Choose The List Layout</h2>
+<p class="subtitle">Both options remove the board. The difference is whether the page feels more like a single operational queue or a grouped status dashboard.</p>
+
+<div class="cards">
+  <div class="card" data-choice="stacked-sections" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Option A: Stacked Sections</div>
+        <div class="mockup-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div class="label">Live Orders</div>
+              <div style="font-size:20px;font-weight:700;">Today</div>
+            </div>
+            <button class="mock-button">Filter</button>
+          </div>
+          <div style="display:grid;gap:12px;">
+            <div style="border:1px solid #d6d3d1;border-radius:14px;padding:12px;background:#fffaf6;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <strong>Pending</strong>
+                <span>6</span>
+              </div>
+              <div class="placeholder" style="padding:10px;margin-bottom:8px;">Aira Santos • 2 items • Cash</div>
+              <div class="placeholder" style="padding:10px;">Marco Lee • 4 items • GCash</div>
+            </div>
+            <div style="border:1px solid #d6d3d1;border-radius:14px;padding:12px;background:#ffffff;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <strong>Preparing</strong>
+                <span>3</span>
+              </div>
+              <div class="placeholder" style="padding:10px;margin-bottom:8px;">Jamie Co • 1 item • Dine-in</div>
+              <div class="placeholder" style="padding:10px;">Paolo Tan • 5 items • Pickup</div>
+            </div>
+            <div style="border:1px solid #d6d3d1;border-radius:14px;padding:12px;background:#ffffff;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <strong>Ready</strong>
+                <span>2</span>
+              </div>
+              <div class="placeholder" style="padding:10px;">Ina Cruz • 3 items • Delivery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Stacked Sections</h3>
+      <p>Vertical status sections on one page. Easy scanning, clear counts, compact cards inside each section.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="dense-table" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Option B: Dense Table List</div>
+        <div class="mockup-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div class="label">Orders</div>
+              <div style="font-size:20px;font-weight:700;">Compact Queue</div>
+            </div>
+            <button class="mock-button">Status</button>
+          </div>
+          <div style="border:1px solid #d6d3d1;border-radius:14px;overflow:hidden;background:#ffffff;">
+            <div style="display:grid;grid-template-columns:1.1fr .8fr .7fr .7fr .8fr;padding:10px 12px;background:#f5f5f4;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">
+              <div>Customer</div>
+              <div>Status</div>
+              <div>Items</div>
+              <div>Total</div>
+              <div>Action</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.1fr .8fr .7fr .7fr .8fr;padding:12px;border-top:1px solid #e7e5e4;">
+              <div>Aira Santos</div><div>Pending</div><div>2</div><div>P240</div><div>Start</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.1fr .8fr .7fr .7fr .8fr;padding:12px;border-top:1px solid #e7e5e4;">
+              <div>Marco Lee</div><div>Preparing</div><div>4</div><div>P540</div><div>Ready</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.1fr .8fr .7fr .7fr .8fr;padding:12px;border-top:1px solid #e7e5e4;">
+              <div>Ina Cruz</div><div>Ready</div><div>3</div><div>P420</div><div>Done</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Dense Table List</h3>
+      <p>One compact list with rows and columns. Faster for dense scanning, but less friendly on smaller screens.</p>
+    </div>
+  </div>
+</div>

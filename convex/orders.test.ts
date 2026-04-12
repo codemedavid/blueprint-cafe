@@ -108,7 +108,7 @@ describe('orders board workflow', () => {
       expect(order).toHaveBeenCalledWith('desc');
     }
     for (const take of takeMocks) {
-      expect(take).toHaveBeenCalledWith(50);
+      expect(take).toHaveBeenCalledWith(200);
     }
     expect(result).toEqual([
       ...rowsByStatus.pending,

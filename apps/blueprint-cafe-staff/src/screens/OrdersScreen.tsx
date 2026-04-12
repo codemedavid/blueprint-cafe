@@ -3,6 +3,7 @@ import { AppState, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OrderRow } from '../components/OrderRow';
 import { OrdersStatusTabs } from '../components/OrdersStatusTabs';
@@ -77,7 +78,8 @@ export function OrdersScreen() {
   const filteredOrders = (orders ?? []).filter((order) => order.status === selectedStatus);
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView edges={['top']} style={styles.safeArea} testID="orders-safe-area">
+      <View style={styles.screen}>
       <View style={styles.headerBlock}>
         <Text style={styles.eyebrow}>Blueprint Cafe</Text>
         <Text style={styles.title}>Staff Orders</Text>
@@ -116,14 +118,18 @@ export function OrdersScreen() {
           />
         ) : null}
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  screen: {
+    flex: 1,
     padding: theme.spacing.md,
     gap: theme.spacing.md,
   },

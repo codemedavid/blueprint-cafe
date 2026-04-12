@@ -81,7 +81,7 @@ export const createOrder = mutation({
 export const listBoardOrders = query({
   args: {},
   handler: async (ctx) => {
-    const perStatusLimit = 50;
+    const perStatusLimit = 200;
     const ordersByStatus = await Promise.all(
       BOARD_STATUS_ORDER.map(async (status) => {
         return await ctx.db

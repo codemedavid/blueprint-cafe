@@ -11,6 +11,19 @@ export type StaffOrderItem = {
   lineItemId: string;
   name: string;
   quantity: number;
+  selectedVariations: Array<{
+    id: string;
+    name: string;
+    price: number;
+    type?: string;
+  }>;
+  selectedAddOns: Array<{
+    id: string;
+    name: string;
+    category: string;
+    price: number;
+    quantity: number;
+  }>;
 };
 
 export type StaffOrder<OrderId extends string = string> = {
