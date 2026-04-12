@@ -5,13 +5,13 @@ import { api } from '../../convex/_generated/api';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
-import { buildMessengerOrderMessage, buildOrderSubmission } from '../lib/orders';
+import { buildOrderSubmission, type CreateOrderInput } from '../lib/orders';
 
 interface CheckoutProps {
   cartItems: CartItem[];
   totalPrice: number;
   onBack: () => void;
-  onOrderPlaced: () => void;
+  onOrderPlaced: (order: CreateOrderInput) => void;
 }
 
 const Checkout: React.FC<CheckoutProps> = ({
@@ -98,9 +98,7 @@ const Checkout: React.FC<CheckoutProps> = ({
 
       await createOrder({ order });
 
-      const messengerUrl = `https://m.me/BlueprintCafe?text=${encodeURIComponent(buildMessengerOrderMessage(order))}`;
-      window.open(messengerUrl, '_blank', 'noopener,noreferrer');
-      onOrderPlaced();
+      onOrderPlaced(order);
     } catch (error) {
       console.error('Error saving order to Convex:', error);
       setSubmitError('We could not save your order. Please try again.');

@@ -6,18 +6,39 @@ import SubNav from './components/SubNav';
 import Menu from './components/Menu';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
+import OrderConfirmation from './components/OrderConfirmation';
 import FloatingCartButton from './components/FloatingCartButton';
 import AdminDashboard from './components/AdminDashboard';
 import { useMenu } from './hooks/useMenu';
+import type { CreateOrderInput } from './lib/orders';
+import {
+  completeMessengerRedirect,
+  showOrderConfirmation,
+  type CustomerView,
+} from './lib/checkoutConfirmation';
 
 function MainApp() {
   const cart = useCart();
   const { menuItems } = useMenu();
-  const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
+  const [currentView, setCurrentView] = React.useState<CustomerView>('menu');
+  const [confirmationOrder, setConfirmationOrder] = React.useState<CreateOrderInput | null>(null);
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all');
 
-  const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
+  const handleViewChange = (view: CustomerView) => {
     setCurrentView(view);
+  };
+
+  const handleOrderPlaced = (order: CreateOrderInput) => {
+    const nextState = showOrderConfirmation(order);
+    setConfirmationOrder(nextState.confirmationOrder);
+    setCurrentView(nextState.currentView);
+  };
+
+  const handleMessengerOpened = () => {
+    const nextState = completeMessengerRedirect();
+    cart.clearCart();
+    setConfirmationOrder(nextState.confirmationOrder);
+    setCurrentView(nextState.currentView);
   };
 
   const handleCategoryClick = (categoryId: string) => {
@@ -64,10 +85,14 @@ function MainApp() {
           cartItems={cart.cartItems}
           totalPrice={cart.getTotalPrice()}
           onBack={() => handleViewChange('cart')}
-          onOrderPlaced={() => {
-            cart.clearCart();
-            handleViewChange('menu');
-          }}
+          onOrderPlaced={handleOrderPlaced}
+        />
+      )}
+
+      {currentView === 'confirmation' && confirmationOrder && (
+        <OrderConfirmation
+          order={confirmationOrder}
+          onMessengerOpened={handleMessengerOpened}
         />
       )}
       
